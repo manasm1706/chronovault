@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context=".ui.auth.SignupFragment">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/spacing_xl"
+            android:paddingBottom="@dimen/spacing_xxl">
+
+            <!-- Back Button -->
+            <ImageButton
+                android:id="@+id/btn_back"
+                android:layout_width="@dimen/touch_target_min"
+                android:layout_height="@dimen/touch_target_min"
+                android:layout_marginStart="@dimen/spacing_md"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/button_cancel"
+                android:src="@drawable/ic_home_black_24dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_lg"
+                android:layout_marginTop="@dimen/spacing_xl"
+                android:text="@string/title_signup"
+                android:textAppearance="@style/TextAppearance.ChronoVault.HeadlineSmall"
+                android:textColor="@color/primary"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btn_back" />
+
+            <!-- Name Field -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_lg"
+                android:layout_marginTop="@dimen/spacing_xl"
+                android:layout_marginEnd="@dimen/spacing_lg"
+                android:hint="@string/label_name"
+                app:boxCornerRadiusBottomEnd="@dimen/corner_md"
+                app:boxCornerRadiusBottomStart="@dimen/corner_md"
+                app:boxCornerRadiusTopEnd="@dimen/corner_md"
+                app:boxCornerRadiusTopStart="@dimen/corner_md"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_title">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Email Field -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_lg"
+                android:layout_marginTop="@dimen/spacing_lg"
+                android:layout_marginEnd="@dimen/spacing_lg"
+                android:hint="@string/label_email"
+                app:boxCornerRadiusBottomEnd="@dimen/corner_md"
+                app:boxCornerRadiusBottomStart="@dimen/corner_md"
+                app:boxCornerRadiusTopEnd="@dimen/corner_md"
+                app:boxCornerRadiusTopStart="@dimen/corner_md"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/til_name">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Password Field -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_lg"
+                android:layout_marginTop="@dimen/spacing_lg"
+                android:layout_marginEnd="@dimen/spacing_lg"
+                android:hint="@string/label_password"
+                app:boxCornerRadiusBottomEnd="@dimen/corner_md"
+                app:boxCornerRadiusBottomStart="@dimen/corner_md"
+                app:boxCornerRadiusTopEnd="@dimen/corner_md"
+                app:boxCornerRadiusTopStart="@dimen/corner_md"
+                app:endIconMode="password_toggle"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/til_email">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Confirm Password Field -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_confirm_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_lg"
+                android:layout_marginTop="@dimen/spacing_lg"
+                android:layout_marginEnd="@dimen/spacing_lg"
+                android:hint="@string/label_confirm_password"
+                app:boxCornerRadiusBottomEnd="@dimen/corner_md"
+                app:boxCornerRadiusBottomStart="@dimen/corner_md"
+                app:boxCornerRadiusTopEnd="@dimen/corner_md"
+                app:boxCornerRadiusTopStart="@dimen/corner_md"
+                app:endIconMode="password_toggle"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/til_password">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_confirm_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Signup Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_signup"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_height"
+                android:layout_marginStart="@dimen/spacing_lg"
+                android:layout_marginTop="@dimen/spacing_xl"
+                android:layout_marginEnd="@dimen/spacing_lg"
+                android:text="@string/button_signup"
+                android:textAppearance="@style/TextAppearance.ChronoVault.LabelLarge"
+                app:cornerRadius="@dimen/corner_xl"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/til_confirm_password" />
+
+            <!-- Login Link -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_lg"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btn_signup">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/text_have_account"
+                    android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tv_login"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/text_login_here"
+                    android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
+                    android:textColor="@color/primary"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Error Message -->
+            <TextView
+                android:id="@+id/tv_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/spacing_lg"
+                android:layout_marginTop="@dimen/spacing_lg"
+                android:layout_marginEnd="@dimen/spacing_lg"
+                android:text=""
+                android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
+                android:textColor="@color/error"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btn_signup" />
+
+            <!-- Loading Indicator -->
+            <ProgressBar
+                android:id="@+id/progress_signup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@id/btn_signup"
+                app:layout_constraintEnd_toEndOf="@id/btn_signup"
+                app:layout_constraintStart_toStartOf="@id/btn_signup"
+                app:layout_constraintTop_toTopOf="@id/btn_signup" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

@@ -1,0 +1,141 @@
+<resources>
+    <!-- App Name & Tagline -->
+    <string name="app_name">ChronoVault</string>
+    <string name="app_tagline">Preserve Moments. Rediscover Yourself.</string>
+
+    <!-- Navigation -->
+    <string name="title_home">Home</string>
+    <string name="title_capsules">Capsules</string>
+    <string name="title_notifications">Alerts</string>
+
+    <!-- Splash Screen -->
+    <string name="splash_app_name">ChronoVault</string>
+    <string name="splash_tagline">Preserve Moments. Rediscover Yourself.</string>
+
+    <!-- Onboarding -->
+    <string name="onboard_title_1">Capture Meaningful Moments</string>
+    <string name="onboard_desc_1">Save memories with location, images, and thoughts</string>
+    <string name="onboard_title_2">Rediscover Through Time and Place</string>
+    <string name="onboard_desc_2">Unlock memories when time passes or when you revisit meaningful places</string>
+    <string name="onboard_title_3">Share Memories with Trust</string>
+    <string name="onboard_desc_3">Share capsules through mutual permission</string>
+    <string name="button_next">Next</string>
+    <string name="button_skip">Skip</string>
+    <string name="button_get_started">Get Started</string>
+
+    <!-- Authentication -->
+    <string name="title_login">Login</string>
+    <string name="title_signup">Create Account</string>
+    <string name="label_email">Email Address</string>
+    <string name="label_password">Password</string>
+    <string name="label_confirm_password">Confirm Password</string>
+    <string name="label_name">Full Name</string>
+    <string name="button_login">Login</string>
+    <string name="button_signup">Create Account</string>
+    <string name="text_no_account">Don\'t have an account? </string>
+    <string name="text_sign_up_here">Sign up here</string>
+    <string name="text_have_account">Already have an account? </string>
+    <string name="text_login_here">Login here</string>
+    <string name="error_invalid_email">Invalid email address</string>
+    <string name="error_weak_password">Password must be at least 6 characters</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
+    <string name="error_required_field">This field is required</string>
+
+    <!-- Home Fragment -->
+    <string name="greeting_hello">Hello, %s 👋</string>
+    <string name="section_summary">Summary</string>
+    <string name="label_total_capsules">Total Capsules</string>
+    <string name="label_locked">Locked</string>
+    <string name="label_unlocked">Unlocked</string>
+    <string name="label_shared">Shared</string>
+    <string name="label_nearby">Nearby</string>
+    <string name="button_create_capsule">Create New Capsule</string>
+    <string name="section_recent">Recent Capsules</string>
+    <string name="section_quote">Daily Quote</string>
+
+    <!-- Capsules -->
+    <string name="title_capsules_list">My Capsules</string>
+    <string name="filter_all">All</string>
+    <string name="filter_locked">Locked</string>
+    <string name="filter_unlocked">Unlocked</string>
+    <string name="filter_shared">Shared</string>
+    <string name="label_created">Created</string>
+    <string name="label_unlock_when">Unlock when</string>
+    <string name="button_view_details">View Details</string>
+    <string name="button_share">Share</string>
+    <string name="button_delete">Delete</string>
+    <string name="empty_capsules">No capsules yet. Create one to get started!</string>
+
+    <!-- Create Capsule -->
+    <string name="title_create_capsule">Create Capsule</string>
+    <string name="label_title">Title</string>
+    <string name="label_message">What\'s on your mind?</string>
+    <string name="label_image">Add Image</string>
+    <string name="label_location">Current Location</string>
+    <string name="label_unlock_date">Unlock Date</string>
+    <string name="label_unlock_location">Unlock by Location</string>
+    <string name="label_share_access">Allow Sharing</string>
+    <string name="button_save_capsule">Save Capsule</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="hint_capsule_title">Give your memory a name</string>
+    <string name="hint_capsule_message">Write your thoughts, feelings, and memories</string>
+
+    <!-- Capsule Details -->
+    <string name="title_capsule_details">Capsule Details</string>
+    <string name="status_locked">🔒 Locked</string>
+    <string name="status_unlocked">🔓 Unlocked</string>
+    <string name="status_shared">👥 Shared</string>
+    <string name="button_unlock">Unlock Now</string>
+    <string name="button_share_capsule">Share Capsule</string>
+    <string name="button_delete_capsule">Delete Capsule</string>
+    <string name="unlock_condition_time">Unlocks on %s</string>
+    <string name="unlock_condition_location">Unlock when you\'re near this place</string>
+    <string name="unlock_condition_both">Unlocks on %s or when nearby</string>
+
+    <!-- Map -->
+    <string name="title_map">Map View</string>
+    <string name="label_my_location">My Location</string>
+    <string name="button_center_map">Center on Me</string>
+    <string name="marker_locked">Locked Capsule</string>
+    <string name="marker_unlocked">Unlocked Capsule</string>
+    <string name="marker_nearby">Nearby Capsule</string>
+    <string name="marker_shared">Shared Capsule</string>
+
+    <!-- Notifications -->
+    <string name="title_alerts">Alerts</string>
+    <string name="notification_nearby">You\'re near a memory location.</string>
+    <string name="notification_unlocked">A capsule has unlocked!</string>
+    <string name="notification_shared">Someone shared a capsule with you.</string>
+    <string name="notification_time_based">Your time-locked capsule is ready to open.</string>
+    <string name="empty_notifications">No alerts yet</string>
+    <string name="notification_channel_name">ChronoVault Notifications</string>
+    <string name="notification_channel_desc">Alerts for memory unlocks and nearby locations</string>
+
+    <!-- Profile -->
+    <string name="title_profile">Profile</string>
+    <string name="label_account">Account</string>
+    <string name="label_avatar">Avatar</string>
+    <string name="label_username">Username</string>
+    <string name="label_joined">Joined</string>
+    <string name="label_settings">Settings</string>
+    <string name="label_notifications_enabled">Enable Notifications</string>
+    <string name="label_location_tracking">Background Location Tracking</string>
+    <string name="label_about">About</string>
+    <string name="label_privacy_policy">Privacy Policy</string>
+    <string name="label_terms">Terms of Service</string>
+    <string name="button_logout">Logout</string>
+    <string name="button_edit_profile">Edit Profile</string>
+    <string name="confirm_logout">Are you sure you want to logout?</string>
+
+    <!-- Common -->
+    <string name="loading">Loading...</string>
+    <string name="error">Error</string>
+    <string name="retry">Retry</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="confirm">Confirm</string>
+    <string name="success">Success</string>
+    <string name="saved">Saved successfully</string>
+    <string name="deleted">Deleted successfully</string>
+    <string name="shared_successfully">Shared successfully</string>
+    <string name="something_went_wrong">Something went wrong</string>
+</resources>

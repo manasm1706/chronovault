@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="purple_200">#BB86FC</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+
+    <!-- Primary Colors - Metallic Green -->
+    <color name="primary">#2f6f5e</color>
+    <color name="primary_variant">#1f4a42</color>
+    <color name="primary_light">#4c8c7a</color>
+
+    <!-- Secondary Colors - Soft Ochre -->
+    <color name="secondary">#d6a75f</color>
+    <color name="secondary_variant">#c49450</color>
+    <color name="secondary_light">#e8c896</color>
+
+    <!-- Accent Colors -->
+    <color name="accent">#4c8c7a</color>
+    <color name="success">#10b981</color>
+    <color name="warning">#f59e0b</color>
+    <color name="error">#ef4444</color>
+
+    <!-- Background & Surface -->
+    <color name="background">#f4f7f5</color>
+    <color name="surface">#ffffff</color>
+    <color name="surface_variant">#f0f3f1</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#1c2b26</color>
+    <color name="text_secondary">#6b7d75</color>
+    <color name="text_tertiary">#9ca9a4</color>
+
+    <!-- Borders & Dividers -->
+    <color name="border">#dde5e1</color>
+    <color name="divider">#e9ede9</color>
+
+    <!-- Legacy colors for compatibility -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

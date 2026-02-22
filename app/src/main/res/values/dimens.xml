@@ -1,0 +1,109 @@
+<resources>
+    <!-- Spacing System (4dp base unit) -->
+    <dimen name="spacing_0">0dp</dimen>
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_sm">8dp</dimen>
+    <dimen name="spacing_md">12dp</dimen>
+    <dimen name="spacing_lg">16dp</dimen>
+    <dimen name="spacing_xl">24dp</dimen>
+    <dimen name="spacing_xxl">32dp</dimen>
+    <dimen name="spacing_xxxl">48dp</dimen>
+
+    <!-- Screen Margins -->
+    <dimen name="screen_margin_horizontal">16dp</dimen>
+    <dimen name="screen_margin_vertical">16dp</dimen>
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!-- Corner Radii -->
+    <dimen name="corner_xs">4dp</dimen>
+    <dimen name="corner_sm">8dp</dimen>
+    <dimen name="corner_md">12dp</dimen>
+    <dimen name="corner_lg">16dp</dimen>
+    <dimen name="corner_xl">24dp</dimen>
+    <dimen name="corner_pill">48dp</dimen>
+
+    <!-- Elevation/Shadow -->
+    <dimen name="elevation_none">0dp</dimen>
+    <dimen name="elevation_sm">2dp</dimen>
+    <dimen name="elevation_md">4dp</dimen>
+    <dimen name="elevation_lg">8dp</dimen>
+    <dimen name="elevation_xl">12dp</dimen>
+
+    <!-- Typography Sizes -->
+    <dimen name="text_size_display_large">57sp</dimen>
+    <dimen name="text_size_display_medium">45sp</dimen>
+    <dimen name="text_size_display_small">36sp</dimen>
+    <dimen name="text_size_headline_large">32sp</dimen>
+    <dimen name="text_size_headline_medium">28sp</dimen>
+    <dimen name="text_size_headline_small">24sp</dimen>
+    <dimen name="text_size_title_large">22sp</dimen>
+    <dimen name="text_size_title_medium">16sp</dimen>
+    <dimen name="text_size_title_small">14sp</dimen>
+    <dimen name="text_size_body_large">16sp</dimen>
+    <dimen name="text_size_body_medium">14sp</dimen>
+    <dimen name="text_size_body_small">12sp</dimen>
+    <dimen name="text_size_label_large">14sp</dimen>
+    <dimen name="text_size_label_medium">12sp</dimen>
+    <dimen name="text_size_label_small">11sp</dimen>
+
+    <!-- Line Heights -->
+    <dimen name="line_height_display_large">64dp</dimen>
+    <dimen name="line_height_display_medium">52dp</dimen>
+    <dimen name="line_height_display_small">44dp</dimen>
+    <dimen name="line_height_headline_large">40dp</dimen>
+    <dimen name="line_height_headline_medium">36dp</dimen>
+    <dimen name="line_height_headline_small">32dp</dimen>
+    <dimen name="line_height_title_large">28dp</dimen>
+    <dimen name="line_height_title_medium">24dp</dimen>
+    <dimen name="line_height_title_small">20dp</dimen>
+    <dimen name="line_height_body_large">24dp</dimen>
+    <dimen name="line_height_body_medium">20dp</dimen>
+    <dimen name="line_height_body_small">16dp</dimen>
+    <dimen name="line_height_label_large">20dp</dimen>
+    <dimen name="line_height_label_medium">16dp</dimen>
+    <dimen name="line_height_label_small">16dp</dimen>
+
+    <!-- Component Sizes -->
+    <dimen name="button_height_small">36dp</dimen>
+    <dimen name="button_height">48dp</dimen>
+    <dimen name="button_height_large">56dp</dimen>
+    <dimen name="button_min_width">64dp</dimen>
+
+    <dimen name="fab_size">56dp</dimen>
+    <dimen name="fab_size_extended">56dp</dimen>
+
+    <dimen name="icon_size_sm">16dp</dimen>
+    <dimen name="icon_size_md">24dp</dimen>
+    <dimen name="icon_size_lg">32dp</dimen>
+    <dimen name="icon_size_xl">48dp</dimen>
+
+    <dimen name="card_height_min">100dp</dimen>
+    <dimen name="card_image_height">200dp</dimen>
+
+    <!-- Bottom Navigation -->
+    <dimen name="bottom_nav_height">80dp</dimen>
+    <dimen name="bottom_nav_icon_size">24dp</dimen>
+
+    <!-- List Items -->
+    <dimen name="list_item_height">56dp</dimen>
+    <dimen name="list_item_height_large">88dp</dimen>
+
+    <!-- Dialog Sizes -->
+    <dimen name="dialog_width_fraction">90%</dimen>
+    <dimen name="dialog_padding">24dp</dimen>
+
+    <!-- Image Dimensions -->
+    <dimen name="avatar_size_small">32dp</dimen>
+    <dimen name="avatar_size_medium">48dp</dimen>
+    <dimen name="avatar_size_large">64dp</dimen>
+    <dimen name="avatar_size_xlarge">120dp</dimen>
+
+    <!-- Border Width -->
+    <dimen name="border_width_thin">0.5dp</dimen>
+    <dimen name="border_width_normal">1dp</dimen>
+    <dimen name="border_width_thick">2dp</dimen>
+
+    <!-- Swipe/Touch Targets (minimum 48dp) -->
+    <dimen name="touch_target_min">48dp</dimen>
+</resources>

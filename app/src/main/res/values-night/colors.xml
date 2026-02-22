@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="purple_200">#BB86FC</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+
+    <!-- Primary Colors - Metallic Green (darker variant for dark mode) -->
+    <color name="primary">#4c8c7a</color>
+    <color name="primary_variant">#2f6f5e</color>
+    <color name="primary_light">#6da895</color>
+
+    <!-- Secondary Colors - Soft Ochre (lighter variant for dark mode) -->
+    <color name="secondary">#e8c896</color>
+    <color name="secondary_variant">#d6a75f</color>
+    <color name="secondary_light">#f0d4a8</color>
+
+    <!-- Accent Colors -->
+    <color name="accent">#6da895</color>
+    <color name="success">#34d399</color>
+    <color name="warning">#fbbf24</color>
+    <color name="error">#f87171</color>
+
+    <!-- Background & Surface for dark mode -->
+    <color name="background">#0f1714</color>
+    <color name="surface">#1a2420</color>
+    <color name="surface_variant">#283b33</color>
+
+    <!-- Text Colors for dark mode -->
+    <color name="text_primary">#f4f7f5</color>
+    <color name="text_secondary">#c4d0ca</color>
+    <color name="text_tertiary">#8a9a93</color>
+
+    <!-- Borders & Dividers for dark mode -->
+    <color name="border">#3a4d45</color>
+    <color name="divider">#2d3f38</color>
+
+    <!-- Legacy colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
+
