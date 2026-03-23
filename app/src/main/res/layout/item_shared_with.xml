@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingVertical="@dimen/spacing_sm"
+    android:paddingHorizontal="@dimen/spacing_xs">
+
+    <ImageView
+        android:layout_width="@dimen/icon_size_md"
+        android:layout_height="@dimen/icon_size_md"
+        android:layout_marginEnd="@dimen/spacing_md"
+        android:src="@android:drawable/ic_dialog_email"
+        android:contentDescription="@string/label_email"
+        app:tint="?attr/colorOnSurfaceVariant" />
+
+    <TextView
+        android:id="@+id/tv_shared_email"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_remove_share"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:text="@string/button_remove"
+        android:textColor="?attr/colorError"
+        style="@style/Widget.ChronoVault.Button.Text"
+        android:textSize="12sp" />
+</LinearLayout>
+

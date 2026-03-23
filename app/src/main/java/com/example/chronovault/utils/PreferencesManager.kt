@@ -26,9 +26,12 @@ class PreferencesManager(context: Context) {
         private const val KEY_USER_ID = "user_id"
         private const val KEY_USER_NAME = "user_name"
         private const val KEY_USER_EMAIL = "user_email"
+        private const val KEY_USER_AVATAR = "user_avatar_base64"
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
         private const val KEY_IS_FIRST_LAUNCH = "is_first_launch"
         private const val KEY_NOTIFICATIONS_ENABLED = "notifications_enabled"
+        private const val KEY_NOTIFICATION_SOUND = "notification_sound"
+        private const val KEY_NOTIFICATION_VIBRATION = "notification_vibration"
         private const val KEY_LOCATION_TRACKING_ENABLED = "location_tracking_enabled"
     }
 
@@ -57,6 +60,14 @@ class PreferencesManager(context: Context) {
         return sharedPreferences.getString(KEY_USER_EMAIL, null)
     }
 
+    fun setUserAvatar(avatar: String) {
+        sharedPreferences.edit().putString(KEY_USER_AVATAR, avatar).apply()
+    }
+
+    fun getUserAvatar(): String? {
+        return sharedPreferences.getString(KEY_USER_AVATAR, null)
+    }
+
     fun setLoggedIn(isLoggedIn: Boolean) {
         sharedPreferences.edit().putBoolean(KEY_IS_LOGGED_IN, isLoggedIn).apply()
     }
@@ -83,6 +94,22 @@ class PreferencesManager(context: Context) {
         return sharedPreferences.getBoolean(KEY_NOTIFICATIONS_ENABLED, true)
     }
 
+    fun setNotificationSound(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_NOTIFICATION_SOUND, enabled).apply()
+    }
+
+    fun getNotificationSound(): Boolean {
+        return sharedPreferences.getBoolean(KEY_NOTIFICATION_SOUND, true)
+    }
+
+    fun setNotificationVibration(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_NOTIFICATION_VIBRATION, enabled).apply()
+    }
+
+    fun getNotificationVibration(): Boolean {
+        return sharedPreferences.getBoolean(KEY_NOTIFICATION_VIBRATION, true)
+    }
+
     fun setLocationTrackingEnabled(enabled: Boolean) {
         sharedPreferences.edit().putBoolean(KEY_LOCATION_TRACKING_ENABLED, enabled).apply()
     }
@@ -98,6 +125,15 @@ class PreferencesManager(context: Context) {
 
     fun getString(key: String, defaultValue: String? = null): String? {
         return sharedPreferences.getString(key, defaultValue)
+    }
+
+    // Notification read tracking
+    fun setNotificationRead(notificationId: String, isRead: Boolean) {
+        sharedPreferences.edit().putBoolean("notification_read_$notificationId", isRead).apply()
+    }
+
+    fun isNotificationRead(notificationId: String): Boolean {
+        return sharedPreferences.getBoolean("notification_read_$notificationId", false)
     }
 
     // Clear all data (logout)

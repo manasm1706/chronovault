@@ -45,7 +45,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    implementation("com.google.android.material:material:1.10.0") // latest version
     implementation(libs.androidx.constraintlayout)
 
     // Lifecycle & ViewModel
@@ -62,7 +61,6 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-storage-ktx")
     implementation("com.google.firebase:firebase-messaging-ktx")
 
     // Room Database
@@ -73,8 +71,10 @@ dependencies {
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
-    // Google Maps & Location Services
-    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    // OpenStreetMap via OSMDroid
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+
+    // Location Services
     implementation("com.google.android.gms:play-services-location:21.1.0")
 
     // Retrofit & Networking

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Legacy colors for compatibility -->
     <color name="purple_200">#BB86FC</color>
     <color name="purple_700">#3700B3</color>
     <color name="teal_200">#03DAC5</color>
@@ -20,11 +21,12 @@
     <color name="success">#10b981</color>
     <color name="warning">#f59e0b</color>
     <color name="error">#ef4444</color>
+    <color name="error_container">#ffecdcd5</color>
 
     <!-- Background & Surface -->
     <color name="background">#f4f7f5</color>
     <color name="surface">#ffffff</color>
-    <color name="surface_variant">#f0f3f1</color>
+    <color name="surface_variant">#edf2ef</color>
 
     <!-- Text Colors -->
     <color name="text_primary">#1c2b26</color>
@@ -35,7 +37,16 @@
     <color name="border">#dde5e1</color>
     <color name="divider">#e9ede9</color>
 
-    <!-- Legacy colors for compatibility -->
+    <!-- Splash / On-dark overlays -->
+    <color name="splash_text_faded">#B0FFFFFF</color>
+
+    <!-- Status badge colors -->
+    <color name="badge_locked">#2f6f5e</color>
+    <color name="badge_unlocked">#10b981</color>
+    <color name="badge_shared">#d6a75f</color>
+    <color name="badge_nearby">#06b6d4</color>
+
+    <!-- Legacy colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

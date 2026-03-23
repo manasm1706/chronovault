@@ -4,17 +4,407 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground"
     tools:context=".ui.home.HomeFragment">
 
-    <TextView
-        android:id="@+id/text_home"
-        android:layout_width="match_parent"
+    <ScrollView
+        android:id="@+id/scroll_home"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_lg">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_xl"
+                android:background="@drawable/bg_home_header_gradient"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_lg">
+
+                <TextView
+                    android:id="@+id/tv_greeting"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.ChronoVault.HeadlineMedium"
+                    android:textColor="@color/white"
+                    tools:text="Good evening, Manas 👋" />
+
+                <TextView
+                    android:id="@+id/tv_greeting_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_xs"
+                    android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
+                    android:textColor="@color/white"
+                    tools:text="You have memories waiting to be rediscovered" />
+            </LinearLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_quote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_xl"
+                app:cardBackgroundColor="?attr/colorSurface"
+                app:cardCornerRadius="@dimen/corner_md"
+                app:cardElevation="@dimen/elevation_md">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/spacing_lg">
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_size_md"
+                        android:layout_height="@dimen/icon_size_md"
+                        android:contentDescription="@string/home_quote_icon"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_asset_bookmark" />
+
+                    <TextView
+                        android:id="@+id/tv_quote"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/spacing_sm"
+                        android:layout_marginEnd="@dimen/spacing_sm"
+                        android:layout_weight="1"
+                        android:textAppearance="@style/TextAppearance.ChronoVault.BodyLarge"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="italic"
+                        tools:text="\&quot;Preserve moments. Rediscover yourself.\&quot;" />
+
+                    <ImageButton
+                        android:id="@+id/btn_refresh_quote"
+                        android:layout_width="@dimen/touch_target_min"
+                        android:layout_height="@dimen/touch_target_min"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/home_refresh_quote"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_asset_cog" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:id="@+id/layout_empty_state"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_xl"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingTop="@dimen/spacing_xl"
+                android:paddingBottom="@dimen/spacing_xl"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:contentDescription="@string/home_empty_illustration"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_asset_bookmark" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_md"
+                    android:text="@string/home_empty_title"
+                    android:textAppearance="@style/TextAppearance.ChronoVault.TitleLarge" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_xs"
+                    android:gravity="center"
+                    android:text="@string/home_empty_description"
+                    android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_stats_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_xl"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_sm"
+                    android:text="@string/section_summary"
+                    android:textAppearance="@style/TextAppearance.ChronoVault.TitleLarge" />
+
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:alignmentMode="alignMargins"
+                    android:columnCount="2"
+                    android:rowCount="2"
+                    android:useDefaultMargins="true">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_total"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        app:cardBackgroundColor="?attr/colorSurface"
+                        app:cardCornerRadius="@dimen/corner_md">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="@dimen/spacing_md">
+
+                            <ImageView
+                                android:layout_width="@dimen/icon_size_md"
+                                android:layout_height="@dimen/icon_size_md"
+                                android:contentDescription="@string/label_total_capsules"
+                                android:scaleType="centerInside"
+                                android:src="@drawable/ic_asset_bookmark" />
+
+                            <TextView
+                                android:id="@+id/tv_count_total"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_xs"
+                                android:text="@string/value_zero"
+                                android:textAppearance="@style/TextAppearance.ChronoVault.HeadlineSmall"
+                                android:textColor="?attr/colorPrimary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_total_capsules"
+                                android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_locked"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        app:cardBackgroundColor="?attr/colorSurface"
+                        app:cardCornerRadius="@dimen/corner_md">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="@dimen/spacing_md">
+
+                            <ImageView
+                                android:layout_width="@dimen/icon_size_md"
+                                android:layout_height="@dimen/icon_size_md"
+                                android:contentDescription="@string/label_locked"
+                                android:scaleType="centerInside"
+                                android:src="@drawable/ic_asset_cog" />
+
+                            <TextView
+                                android:id="@+id/tv_count_locked"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_xs"
+                                android:text="@string/value_zero"
+                                android:textAppearance="@style/TextAppearance.ChronoVault.HeadlineSmall"
+                                android:textColor="?attr/colorPrimary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_locked"
+                                android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_unlocked"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        app:cardBackgroundColor="?attr/colorSurface"
+                        app:cardCornerRadius="@dimen/corner_md">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="@dimen/spacing_md">
+
+                            <ImageView
+                                android:layout_width="@dimen/icon_size_md"
+                                android:layout_height="@dimen/icon_size_md"
+                                android:contentDescription="@string/label_unlocked"
+                                android:scaleType="centerInside"
+                                android:src="@drawable/ic_asset_map" />
+
+                            <TextView
+                                android:id="@+id/tv_count_unlocked"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_xs"
+                                android:text="@string/value_zero"
+                                android:textAppearance="@style/TextAppearance.ChronoVault.HeadlineSmall"
+                                android:textColor="?attr/colorPrimary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_unlocked"
+                                android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_shared"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        app:cardBackgroundColor="?attr/colorSurface"
+                        app:cardCornerRadius="@dimen/corner_md">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:padding="@dimen/spacing_md">
+
+                            <ImageView
+                                android:layout_width="@dimen/icon_size_md"
+                                android:layout_height="@dimen/icon_size_md"
+                                android:contentDescription="@string/label_shared"
+                                android:scaleType="centerInside"
+                                android:src="@drawable/ic_asset_contacts" />
+
+                            <TextView
+                                android:id="@+id/tv_count_shared"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_xs"
+                                android:text="@string/value_zero"
+                                android:textAppearance="@style/TextAppearance.ChronoVault.HeadlineSmall"
+                                android:textColor="?attr/colorPrimary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_shared"
+                                android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </GridLayout>
+            </LinearLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_nearby_memory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_xl"
+                android:visibility="gone"
+                app:cardBackgroundColor="?attr/colorSecondaryContainer"
+                app:cardCornerRadius="@dimen/corner_md"
+                app:cardElevation="@dimen/elevation_sm">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_lg">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/home_nearby_title"
+                        android:textAppearance="@style/TextAppearance.ChronoVault.TitleMedium"
+                        android:textColor="?attr/colorOnSecondaryContainer" />
+
+                    <TextView
+                        android:id="@+id/tv_nearby_capsule_info"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
+                        android:textColor="?attr/colorOnSecondaryContainer"
+                        tools:text="A memory named Summer Sunset is close by." />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_view_nearby_memory"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:text="@string/home_view_memory"
+                        app:backgroundTint="?attr/colorSecondary"
+                        app:icon="@drawable/ic_asset_map"
+                        app:iconTint="?attr/colorOnSecondary" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:id="@+id/layout_recent_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_xl"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_sm"
+                    android:text="@string/home_recent_memories"
+                    android:textAppearance="@style/TextAppearance.ChronoVault.TitleLarge" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_recent_capsules"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_recent_capsule" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_create_capsule"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_xl"
+                android:text="@string/button_create_capsule"
+                app:backgroundTint="?attr/colorPrimary"
+                app:cornerRadius="@dimen/corner_xl"
+                app:elevation="@dimen/elevation_md"
+                app:icon="@drawable/ic_asset_bookmark"
+                app:iconPadding="@dimen/spacing_sm" />
+        </LinearLayout>
+    </ScrollView>
+
+    <ProgressBar
+        android:id="@+id/progress_home"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:textAlignment="center"
-        android:textSize="20sp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

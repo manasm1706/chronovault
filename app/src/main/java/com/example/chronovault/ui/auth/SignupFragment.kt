@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 
 /**
  * SignupFragment - User registration screen
- * Integrates with MongoDB Atlas for authentication
+ * Integrates with Firebase Authentication
  */
 class SignupFragment : Fragment() {
 
@@ -96,8 +96,7 @@ class SignupFragment : Fragment() {
             is SignupState.Success -> {
                 binding.progressSignup.visibility = View.GONE
                 binding.btnSignup.isEnabled = true
-                // Navigate to home screen
-                findNavController().navigate(R.id.action_signupFragment_to_homeFragment)
+                (activity as? AuthActivity)?.navigateToMainApp()
             }
 
             is SignupState.Error -> {

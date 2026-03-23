@@ -1,6 +1,7 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme - Light mode only -->
-    <style name="Theme.ChronoVault" parent="Theme.Material3.Light">
+<resources>
+
+    <!-- Base application theme -->
+    <style name="Theme.ChronoVault" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary colors -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryContainer">@color/primary_light</item>
@@ -19,7 +20,7 @@
 
         <!-- Status/semantic colors -->
         <item name="colorError">@color/error</item>
-        <item name="colorErrorContainer">#ffecdcd5</item>
+        <item name="colorErrorContainer">@color/error_container</item>
         <item name="colorOnError">@color/white</item>
         <item name="colorOnErrorContainer">@color/error</item>
 
@@ -38,7 +39,8 @@
         <item name="colorOutlineVariant">@color/divider</item>
 
         <!-- Status bar -->
-        <item name="android:statusBarColor">@color/surface</item>
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/surface</item>
         <item name="android:windowLightStatusBar">true</item>
 
         <!-- Typography - Roboto -->
@@ -62,131 +64,229 @@
         <item name="textAppearanceLabelMedium">@style/TextAppearance.ChronoVault.LabelMedium</item>
         <item name="textAppearanceLabelSmall">@style/TextAppearance.ChronoVault.LabelSmall</item>
 
-        <!-- Shape appearance for rounded corners -->
+        <!-- Shape appearance -->
         <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.ChronoVault.SmallComponent</item>
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.ChronoVault.MediumComponent</item>
         <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.ChronoVault.LargeComponent</item>
 
         <!-- Component styles -->
-        <item name="buttonStyle">@style/Widget.ChronoVault.Button</item>
-        <item name="materialButtonOutlinedStyle">@style/Widget.ChronoVault.OutlinedButton</item>
-        <item name="materialButtonTonalStyle">@style/Widget.ChronoVault.TonalButton</item>
-        <item name="cardViewStyle">@style/Widget.ChronoVault.CardView</item>
+        <item name="materialButtonStyle">@style/Widget.ChronoVault.Button.Primary</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.ChronoVault.Button.Outlined</item>
+        <item name="materialButtonTonalStyle">@style/Widget.ChronoVault.Button.Tonal</item>
+        <item name="materialCardViewStyle">@style/Widget.ChronoVault.Card</item>
+        <item name="textInputStyle">@style/Widget.ChronoVault.TextInput</item>
+
+        <!-- Bottom Navigation -->
+        <item name="bottomNavigationStyle">@style/Widget.ChronoVault.BottomNav</item>
     </style>
 
-    <!-- Typography Styles -->
+    <!-- ===== TYPOGRAPHY ===== -->
+
+    <!-- Heading alias -->
+    <style name="TextAppearance.ChronoVault.Heading" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:fontFamily">@font/roboto_bold</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
+    </style>
+
+    <!-- Subtitle alias -->
+    <style name="TextAppearance.ChronoVault.Subtitle" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:fontFamily">@font/roboto_bold</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
+    </style>
+
+    <!-- Body alias -->
+    <style name="TextAppearance.ChronoVault.Body" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:fontFamily">@font/roboto</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
+    </style>
+
+    <!-- Caption alias -->
+    <style name="TextAppearance.ChronoVault.Caption" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:fontFamily">@font/roboto</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <!-- Full M3 typography -->
     <style name="TextAppearance.ChronoVault.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
         <item name="android:fontFamily">@font/roboto_bold</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium">
         <item name="android:fontFamily">@font/roboto_bold</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
         <item name="android:fontFamily">@font/roboto_bold</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
         <item name="android:fontFamily">@font/roboto_bold</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
         <item name="android:fontFamily">@font/roboto_bold</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
         <item name="android:fontFamily">@font/roboto_bold</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
         <item name="android:fontFamily">@font/roboto_bold</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
         <item name="android:fontFamily">@font/roboto_bold</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
         <item name="android:fontFamily">@font/roboto</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
         <item name="android:fontFamily">@font/roboto</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:fontFamily">@font/roboto</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.BodySmall" parent="TextAppearance.Material3.BodySmall">
         <item name="android:fontFamily">@font/roboto</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:fontFamily">@font/roboto_bold</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
         <item name="android:fontFamily">@font/roboto_bold</item>
-        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
     </style>
 
     <style name="TextAppearance.ChronoVault.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
         <item name="android:fontFamily">@font/roboto_bold</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
-    <!-- Shape Appearance -->
+    <!-- ===== SHAPES ===== -->
+
     <style name="ShapeAppearance.ChronoVault.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">12dp</item>
+        <item name="cornerSize">@dimen/corner_md</item>
     </style>
 
     <style name="ShapeAppearance.ChronoVault.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">16dp</item>
+        <item name="cornerSize">@dimen/corner_lg</item>
     </style>
 
     <style name="ShapeAppearance.ChronoVault.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">24dp</item>
+        <item name="cornerSize">@dimen/corner_xl</item>
     </style>
 
-    <!-- Component Styles -->
-    <style name="Widget.ChronoVault.Button" parent="Widget.Material3.Button">
-        <item name="backgroundTint">@color/primary</item>
-        <item name="android:textColor">@color/white</item>
-        <item name="cornerRadius">24dp</item>
-        <item name="android:paddingLeft">24dp</item>
-        <item name="android:paddingRight">24dp</item>
+    <!-- ===== BUTTONS ===== -->
+
+    <style name="Widget.ChronoVault.Button.Primary" parent="Widget.Material3.Button">
+        <item name="backgroundTint">?attr/colorPrimary</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="cornerRadius">@dimen/corner_xl</item>
+        <item name="android:paddingStart">@dimen/spacing_xl</item>
+        <item name="android:paddingEnd">@dimen/spacing_xl</item>
+        <item name="android:minHeight">@dimen/button_height</item>
     </style>
 
-    <style name="Widget.ChronoVault.OutlinedButton" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="strokeColor">@color/border</item>
-        <item name="strokeWidth">1dp</item>
-        <item name="cornerRadius">24dp</item>
+    <style name="Widget.ChronoVault.Button.Secondary" parent="Widget.Material3.Button">
+        <item name="backgroundTint">?attr/colorSecondary</item>
+        <item name="android:textColor">?attr/colorOnSecondary</item>
+        <item name="cornerRadius">@dimen/corner_xl</item>
+        <item name="android:paddingStart">@dimen/spacing_xl</item>
+        <item name="android:paddingEnd">@dimen/spacing_xl</item>
+        <item name="android:minHeight">@dimen/button_height</item>
     </style>
 
-    <style name="Widget.ChronoVault.TonalButton" parent="Widget.Material3.Button.TonalButton">
-        <item name="cornerRadius">24dp</item>
+    <style name="Widget.ChronoVault.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="strokeWidth">@dimen/border_width_normal</item>
+        <item name="cornerRadius">@dimen/corner_xl</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:minHeight">@dimen/button_height</item>
     </style>
 
-    <style name="Widget.ChronoVault.CardView" parent="Widget.Material3.CardView.Elevated">
-        <item name="cardCornerRadius">12dp</item>
-        <item name="cardElevation">2dp</item>
+    <style name="Widget.ChronoVault.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
+        <item name="cornerRadius">@dimen/corner_xl</item>
+        <item name="android:minHeight">@dimen/button_height</item>
     </style>
+
+    <style name="Widget.ChronoVault.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="cornerRadius">@dimen/corner_xl</item>
+    </style>
+
+    <style name="Widget.ChronoVault.Button.Danger" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">?attr/colorError</item>
+        <item name="strokeWidth">@dimen/border_width_normal</item>
+        <item name="cornerRadius">@dimen/corner_xl</item>
+        <item name="android:textColor">?attr/colorError</item>
+    </style>
+
+    <!-- Legacy aliases for existing layouts -->
+    <style name="Widget.ChronoVault.Button" parent="Widget.ChronoVault.Button.Primary" />
+    <style name="Widget.ChronoVault.OutlinedButton" parent="Widget.ChronoVault.Button.Outlined" />
+    <style name="Widget.ChronoVault.TonalButton" parent="Widget.ChronoVault.Button.Tonal" />
+
+    <!-- ===== CARDS ===== -->
+
+    <style name="Widget.ChronoVault.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">@dimen/corner_md</item>
+        <item name="cardElevation">@dimen/elevation_md</item>
+        <item name="cardBackgroundColor">?attr/colorSurface</item>
+        <item name="contentPadding">@dimen/spacing_lg</item>
+    </style>
+
+    <style name="Widget.ChronoVault.Card.Flat" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardCornerRadius">@dimen/corner_md</item>
+        <item name="cardElevation">@dimen/elevation_none</item>
+        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="strokeWidth">@dimen/border_width_thin</item>
+    </style>
+
+    <!-- Legacy alias -->
+    <style name="Widget.ChronoVault.CardView" parent="Widget.ChronoVault.Card" />
+
+    <!-- ===== TEXT INPUT ===== -->
+
+    <style name="Widget.ChronoVault.TextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">@dimen/corner_md</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/corner_md</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/corner_md</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/corner_md</item>
+        <item name="boxStrokeColor">?attr/colorOutline</item>
+        <item name="hintTextColor">?attr/colorPrimary</item>
+    </style>
+
+    <!-- ===== BOTTOM NAVIGATION ===== -->
+
+    <style name="Widget.ChronoVault.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemIconTint">@color/bottom_nav_color</item>
+        <item name="itemTextColor">@color/bottom_nav_color</item>
+        <item name="android:background">?attr/colorSurface</item>
+        <item name="elevation">@dimen/elevation_md</item>
+    </style>
+
 </resources>
+

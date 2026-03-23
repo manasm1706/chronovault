@@ -62,5 +62,14 @@ interface CapsuleDao {
 
     @Query("SELECT COUNT(*) FROM capsules WHERE isSharedWithMe = 1 AND ownerId != :userId")
     suspend fun getSharedCapsuleCount(userId: String): Int
+
+    @Query("SELECT * FROM capsules WHERE (ownerId = :userId OR isSharedWithMe = 1) AND NOT (latitude = 0.0 AND longitude = 0.0) ORDER BY createdAt DESC")
+    fun getCapsulesForMap(userId: String): Flow<List<CapsuleEntity>>
+
+    @Query("UPDATE capsules SET canBeShared = :canBeShared WHERE id = :capsuleId")
+    suspend fun updateSharingEnabled(capsuleId: String, canBeShared: Boolean)
+
+    @Query("UPDATE capsules SET sharedWith = '' WHERE id = :capsuleId")
+    suspend fun clearSharedWith(capsuleId: String)
 }
 

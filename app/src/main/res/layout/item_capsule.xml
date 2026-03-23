@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="@dimen/corner_md"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardElevation="@dimen/elevation_md">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <!-- Image -->
+        <ImageView
+            android:id="@+id/iv_capsule_image"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@android:drawable/ic_dialog_info"
+            android:scaleType="centerCrop"
+            android:layout_marginEnd="12dp" />
+
+        <!-- Content -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical">
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Capsule Title"
+                android:textAppearance="@style/TextAppearance.ChronoVault.TitleMedium"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Location -->
+            <TextView
+                android:id="@+id/tv_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📍 Location saved"
+                android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Date -->
+            <TextView
+                android:id="@+id/tv_created_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="25 Feb 2026"
+                android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+
+        <!-- Status Badge -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/tv_status"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:text="Locked"
+            android:layout_gravity="center"
+            android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall"
+            app:chipBackgroundColor="?attr/colorPrimary"
+            android:textColor="?attr/colorOnPrimary" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
+

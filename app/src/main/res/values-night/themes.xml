@@ -1,16 +1,58 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Theme.ChronoVault" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_200</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/black</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_200</item>
-        <item name="colorOnSecondary">@color/black</item>
-        <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
+    <!-- Dark theme overlay — inherits all styles from base themes.xml,
+         only overrides color-related attributes via values-night/colors.xml -->
+    <style name="Theme.ChronoVault" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary colors -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryContainer">@color/primary_light</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnPrimaryContainer">@color/text_primary</item>
+
+        <!-- Secondary colors -->
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSecondaryContainer">@color/secondary_light</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorOnSecondaryContainer">@color/text_primary</item>
+
+        <!-- Tertiary/Accent -->
+        <item name="colorTertiary">@color/accent</item>
+        <item name="colorOnTertiary">@color/white</item>
+
+        <!-- Error -->
+        <item name="colorError">@color/error</item>
+        <item name="colorErrorContainer">@color/error_container</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorOnErrorContainer">@color/error</item>
+
+        <!-- Surface -->
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorSurfaceVariant">@color/surface_variant</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+
+        <!-- Background -->
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/text_primary</item>
+
+        <!-- Outline -->
+        <item name="colorOutline">@color/border</item>
+        <item name="colorOutlineVariant">@color/divider</item>
+
+        <!-- Status bar (dark) -->
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- Typography -->
+        <item name="fontFamily">@font/roboto</item>
+        <item name="android:fontFamily">@font/roboto</item>
+
+        <!-- Component styles (same as light, colors resolve via night colors) -->
+        <item name="materialButtonStyle">@style/Widget.ChronoVault.Button.Primary</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.ChronoVault.Button.Outlined</item>
+        <item name="materialButtonTonalStyle">@style/Widget.ChronoVault.Button.Tonal</item>
+        <item name="materialCardViewStyle">@style/Widget.ChronoVault.Card</item>
+        <item name="textInputStyle">@style/Widget.ChronoVault.TextInput</item>
+        <item name="bottomNavigationStyle">@style/Widget.ChronoVault.BottomNav</item>
     </style>
 </resources>

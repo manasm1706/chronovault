@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="?android:attr/colorBackground"
     tools:context=".ui.auth.LoginFragment">
 
     <ScrollView
@@ -28,7 +28,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/app_name"
                 android:textAppearance="@style/TextAppearance.ChronoVault.DisplaySmall"
-                android:textColor="@color/primary"
+                android:textColor="?attr/colorPrimary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -40,7 +40,7 @@
                 android:layout_marginTop="@dimen/spacing_sm"
                 android:text="@string/app_tagline"
                 android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
-                android:textColor="@color/text_secondary"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tv_app_name" />
@@ -126,7 +126,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/text_no_account"
                     android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
-                    android:textColor="@color/text_secondary" />
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <TextView
                     android:id="@+id/tv_sign_up"
@@ -134,7 +134,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/text_sign_up_here"
                     android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
-                    android:textColor="@color/primary"
+                    android:textColor="?attr/colorPrimary"
                     android:textStyle="bold" />
 
             </LinearLayout>
@@ -149,7 +149,7 @@
                 android:layout_marginEnd="@dimen/spacing_lg"
                 android:text=""
                 android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
-                android:textColor="@color/error"
+                android:textColor="?attr/colorError"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

@@ -12,7 +12,7 @@ data class CapsuleEntity(
     val id: String,
     val title: String,
     val message: String,
-    val imagePath: String? = null,
+    val imageBase64: String? = null, // Stores image as Base64 string
     val latitude: Double,
     val longitude: Double,
     val createdAt: Long,
@@ -26,7 +26,9 @@ data class CapsuleEntity(
     val sharedWith: List<String> = emptyList(),
     val canBeShared: Boolean = false,
     val isSharedWithMe: Boolean = false,
+    val isDiscovered: Boolean = false,
     val sharedByName: String? = null,
-    val sharedAt: Long? = null
+    val sharedAt: Long? = null,
+    val imageMimeType: String = "image/jpeg" // Store MIME type for proper decoding
 )
 

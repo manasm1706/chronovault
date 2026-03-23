@@ -25,6 +25,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
     <application
+        android:name=".ChronoVaultApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -35,9 +36,9 @@
         android:theme="@style/Theme.ChronoVault"
         tools:targetApi="31">
 
-        <!-- Auth Activity (Launcher) -->
+        <!-- Splash Activity (Launcher) -->
         <activity
-            android:name=".ui.auth.AuthActivity"
+            android:name=".ui.splash.SplashActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.ChronoVault">
@@ -45,6 +46,21 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <!-- Onboarding Activity -->
+        <activity
+            android:name=".ui.onboarding.OnboardingActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.ChronoVault" />
+
+        <!-- Auth Activity -->
+        <activity
+            android:name=".ui.auth.AuthActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.ChronoVault">
         </activity>
 
         <!-- Main Activity -->
@@ -68,19 +84,21 @@
             android:label="@string/title_capsule_details"
             android:theme="@style/Theme.ChronoVault" />
 
-        <!-- Firebase Services -->
+        <!-- Custom Firebase Messaging Service -->
         <service
-            android:name="com.google.firebase.messaging.FirebaseMessagingService"
+            android:name=".services.ChronoVaultMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 
-        <!-- Google Play Services for Maps API Key -->
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_GOOGLE_MAPS_API_KEY" />
+        <!-- Foreground Location Service -->
+        <service
+            android:name=".services.ForegroundLocationService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
 
         <!-- WorkManager BackupAgent -->
         <meta-data

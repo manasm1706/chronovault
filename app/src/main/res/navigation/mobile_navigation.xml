@@ -5,6 +5,22 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/navigation_home">
 
+    <activity
+        android:id="@+id/createCapsuleActivity"
+        android:name="com.example.chronovault.ui.capsules.CreateCapsuleActivity"
+        android:label="Create Capsule" />
+
+    <activity
+        android:id="@+id/capsuleDetailsActivity"
+        android:name="com.example.chronovault.ui.capsules.CapsuleDetailsActivity"
+        android:label="Capsule Details">
+        <argument
+            android:name="capsule_id"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </activity>
+
     <fragment
         android:id="@+id/navigation_home"
         android:name="com.example.chronovault.ui.home.HomeFragment"
@@ -15,13 +31,24 @@
         android:id="@+id/navigation_map"
         android:name="com.example.chronovault.ui.map.MapFragment"
         android:label="@string/title_map"
-        tools:layout="@layout/fragment_map" />
+        tools:layout="@layout/fragment_map">
+        <action
+            android:id="@+id/action_mapFragment_to_capsuleDetailsActivity"
+            app:destination="@id/capsuleDetailsActivity" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_capsules"
         android:name="com.example.chronovault.ui.capsules.CapsulesFragment"
         android:label="@string/title_capsules_list"
-        tools:layout="@layout/fragment_capsules" />
+        tools:layout="@layout/fragment_capsules">
+        <action
+            android:id="@+id/action_capsulesFragment_to_createCapsuleActivity"
+            app:destination="@id/createCapsuleActivity" />
+        <action
+            android:id="@+id/action_capsulesFragment_to_capsuleDetailsActivity"
+            app:destination="@id/capsuleDetailsActivity" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_notifications"
@@ -36,4 +63,6 @@
         tools:layout="@layout/fragment_profile" />
 
 </navigation>
+
+
 

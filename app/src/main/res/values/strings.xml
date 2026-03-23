@@ -52,6 +52,28 @@
     <string name="button_create_capsule">Create New Capsule</string>
     <string name="section_recent">Recent Capsules</string>
     <string name="section_quote">Daily Quote</string>
+    <string name="home_dynamic_greeting">%1$s, %2$s 👋</string>
+    <string name="home_quote_wrapped">&quot;%1$s&quot;</string>
+    <string name="home_quote_icon">Quote icon</string>
+    <string name="home_refresh_quote">Refresh quote</string>
+    <string name="home_recent_memories">Recent Memories</string>
+    <string name="home_recent_date">Created: %1$s</string>
+    <string name="home_location_available">Location available</string>
+    <string name="home_nearby_title">You\'re near a memory</string>
+    <string name="home_nearby_body">%1$s is nearby and waiting for you.</string>
+    <string name="home_view_memory">View Memory</string>
+
+
+    <string name="home_empty_title">No memories yet</string>
+    <string name="home_empty_description">Create your first capsule to begin your journey</string>
+    <string name="home_empty_illustration">No memories illustration</string>
+    <string name="home_subtitle_welcome">Welcome back to your memories</string>
+    <string name="home_subtitle_rediscover">You have memories waiting to be rediscovered</string>
+    <string name="value_zero">0</string>
+    <string name="location_permission_title">Location permission</string>
+    <string name="location_permission_rationale">ChronoVault uses your location to surface nearby memories and map context.</string>
+    <string name="location_permission_settings_message">Location permission is permanently denied. Enable it from app settings.</string>
+    <string name="button_open_settings">Open Settings</string>
 
     <!-- Capsules -->
     <string name="title_capsules_list">My Capsules</string>
@@ -103,6 +125,13 @@
 
     <!-- Notifications -->
     <string name="title_alerts">Alerts</string>
+    <string name="title_notifications_header">Notifications</string>
+    <string name="button_clear_all">Clear All</string>
+    <string name="notification_icon_desc">Notification icon</string>
+    <string name="notification_delete_desc">Delete notification</string>
+    <string name="placeholder_notification_title">Notification Title</string>
+    <string name="placeholder_notification_message">Notification message</string>
+    <string name="placeholder_notification_time">5m ago</string>
     <string name="notification_nearby">You\'re near a memory location.</string>
     <string name="notification_unlocked">A capsule has unlocked!</string>
     <string name="notification_shared">Someone shared a capsule with you.</string>
@@ -127,8 +156,28 @@
     <string name="button_edit_profile">Edit Profile</string>
     <string name="confirm_logout">Are you sure you want to logout?</string>
 
+    <!-- Capsule Details - Sharing & Comments -->
+    <string name="shared_with_header">Shared With</string>
+    <string name="not_shared_yet">Not shared with anyone yet</string>
+    <string name="comments_header">Comments</string>
+    <string name="no_comments_yet">No comments yet. Be the first!</string>
+    <string name="hint_add_comment">Add a comment…</string>
+    <string name="button_send">Send</string>
+    <string name="button_make_private">Make Private</string>
+    <string name="button_remove">Remove</string>
+    <string name="confirm_make_private_title">Make Capsule Private?</string>
+    <string name="confirm_make_private_message">This will remove all shared users and disable sharing. Comments will be kept.</string>
+    <string name="confirm_delete_title">Delete Capsule?</string>
+    <string name="confirm_delete_message">Are you sure? This cannot be undone.</string>
+    <string name="share_dialog_title">Share Capsule</string>
+    <string name="share_dialog_hint">Enter email address</string>
+    <string name="capsule_made_private">Capsule is now private</string>
+    <string name="comment_added">Comment added</string>
+    <string name="comment_deleted">Comment deleted</string>
+    <string name="comment_empty_error">Comment cannot be empty</string>
+
     <!-- Common -->
-    <string name="loading">Loading...</string>
+    <string name="loading">Loading…</string>
     <string name="error">Error</string>
     <string name="retry">Retry</string>
     <string name="dismiss">Dismiss</string>

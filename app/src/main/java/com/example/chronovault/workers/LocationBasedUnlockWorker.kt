@@ -1,0 +1,87 @@
+package com.example.chronovault.workers
+
+import android.content.Context
+import android.location.Location
+import androidx.work.CoroutineWorker
+import androidx.work.WorkerParameters
+import com.example.chronovault.data.ServiceLocator
+import com.example.chronovault.utils.LocationHelper
+import com.example.chronovault.utils.NotificationHelper
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.Tasks
+
+/**
+ * LocationBasedUnlockWorker - Check for capsules within proximity
+ * Periodically checks user location and unlocks nearby capsules
+ */
+class LocationBasedUnlockWorker(
+    context: Context,
+    params: WorkerParameters
+) : CoroutineWorker(context, params) {
+
+    private val fusedLocationClient: FusedLocationProviderClient =
+        LocationServices.getFusedLocationProviderClient(context)
+
+    override suspend fun doWork(): Result {
+        return try {
+            val capsuleRepository = ServiceLocator.provideCapsuleRepository(applicationContext)
+            val preferencesManager = ServiceLocator.providePreferencesManager(applicationContext)
+
+            if (!preferencesManager.isLocationTrackingEnabled()) {
+                return Result.success()
+            }
+
+            // Get current location
+            val location = Tasks.await(fusedLocationClient.lastLocation)
+            if (location != null) {
+                val userLatitude = location.latitude
+                val userLongitude = location.longitude
+
+                // Get location-based capsules
+                val locationBasedCapsules = capsuleRepository.getLocationBasedCapsules()
+
+                locationBasedCapsules.forEach { capsule ->
+                    // Calculate distance
+                    val distance = calculateDistance(
+                        userLatitude, userLongitude,
+                        capsule.latitude, capsule.longitude
+                    )
+
+                    // If within 100 meters, unlock
+                    if (distance <= 100f && !capsule.isUnlocked) {
+                        capsuleRepository.unlockCapsule(capsule.id)
+
+                        // Send notification
+                        NotificationHelper.sendLocationBasedUnlockNotification(
+                            applicationContext,
+                            capsule.title,
+                            "You're near \"${capsule.title}\"! Unlock it now."
+                        )
+                    }
+                }
+            }
+
+            Result.success()
+        } catch (e: Exception) {
+            Result.retry()
+        }
+    }
+
+    private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
+        val earthRadiusMeters = 6371000.0
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+        val a = kotlin.math.sin(dLat / 2) * kotlin.math.sin(dLat / 2) +
+                kotlin.math.cos(Math.toRadians(lat1)) * kotlin.math.cos(Math.toRadians(lat2)) *
+                kotlin.math.sin(dLon / 2) * kotlin.math.sin(dLon / 2)
+        val c = 2 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1 - a))
+        return (earthRadiusMeters * c).toFloat()
+    }
+
+    companion object {
+        const val WORK_NAME = "location_based_unlock_work"
+        const val NOTIFICATION_ID = 1002
+    }
+}
+

@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground">
+
+    <!-- Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorSurface"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:title="@string/title_capsule_details"
+        app:navigationIcon="@android:drawable/ic_menu_close_clear_cancel" />
+
+    <!-- Content ScrollView -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/comment_input_layout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_lg">
+
+            <!-- Image -->
+            <ImageView
+                android:id="@+id/iv_capsule_image"
+                android:layout_width="match_parent"
+                android:layout_height="240dp"
+                android:contentDescription="@string/label_image"
+                android:src="@android:drawable/ic_menu_gallery"
+                android:scaleType="centerCrop"
+                android:layout_marginBottom="@dimen/spacing_lg" />
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.ChronoVault.HeadlineMedium"
+                android:layout_marginBottom="@dimen/spacing_sm" />
+
+            <!-- Date -->
+            <TextView
+                android:id="@+id/tv_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="@dimen/spacing_sm" />
+
+            <!-- Location -->
+            <TextView
+                android:id="@+id/tv_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="@dimen/spacing_lg" />
+
+            <!-- Unlock Status Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                app:cardCornerRadius="@dimen/corner_md"
+                app:cardBackgroundColor="?attr/colorPrimaryContainer">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_md">
+
+                    <TextView
+                        android:id="@+id/tv_unlock_reason"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
+                        android:textColor="?attr/colorOnPrimaryContainer" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Message Section -->
+            <!-- FIX: 3 -->
+            <TextView
+                android:id="@+id/tv_message_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_message"
+                android:textAppearance="@style/TextAppearance.ChronoVault.TitleMedium"
+                android:layout_marginBottom="@dimen/spacing_sm" />
+
+            <!-- FIX: 3 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/tv_message_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                app:cardCornerRadius="@dimen/corner_md"
+                app:cardBackgroundColor="?attr/colorSurface">
+
+                <TextView
+                    android:id="@+id/tv_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/status_locked"
+                    android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
+                    android:padding="@dimen/spacing_md" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Shared With Section (only visible for owner) -->
+            <LinearLayout
+                android:id="@+id/layout_shared_with"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginBottom="@dimen/spacing_lg">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/shared_with_header"
+                    android:textAppearance="@style/TextAppearance.ChronoVault.TitleMedium"
+                    android:layout_marginBottom="@dimen/spacing_sm" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_shared_with"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+
+                <TextView
+                    android:id="@+id/tv_no_shares"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/not_shared_yet"
+                    android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:gravity="center"
+                    android:padding="@dimen/spacing_md"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Comments Section -->
+            <LinearLayout
+                android:id="@+id/layout_comments"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="@dimen/spacing_lg">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/comments_header"
+                    android:textAppearance="@style/TextAppearance.ChronoVault.TitleMedium"
+                    android:layout_marginBottom="@dimen/spacing_sm" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_comments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+
+                <TextView
+                    android:id="@+id/tv_no_comments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/no_comments_yet"
+                    android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:gravity="center"
+                    android:padding="@dimen/spacing_md" />
+            </LinearLayout>
+
+            <!-- Action Buttons -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_unlock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/button_unlock"
+                app:cornerRadius="@dimen/corner_xl"
+                android:layout_marginBottom="@dimen/spacing_sm" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_share"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/button_share"
+                style="@style/Widget.ChronoVault.Button.Outlined"
+                app:cornerRadius="@dimen/corner_xl"
+                android:layout_marginBottom="@dimen/spacing_sm" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_make_private"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/button_make_private"
+                style="@style/Widget.ChronoVault.Button.Outlined"
+                app:cornerRadius="@dimen/corner_xl"
+                android:visibility="gone"
+                android:layout_marginBottom="@dimen/spacing_sm" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_delete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/button_delete"
+                android:textColor="?attr/colorError"
+                style="@style/Widget.ChronoVault.Button.Danger"
+                app:cornerRadius="@dimen/corner_xl"
+                android:visibility="gone" />
+
+            <!-- Loading -->
+            <ProgressBar
+                android:id="@+id/progress_details"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_gravity="center_horizontal" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Comment Input Bar (fixed at bottom) -->
+    <LinearLayout
+        android:id="@+id/comment_input_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/spacing_sm"
+        android:background="?attr/colorSurface"
+        android:elevation="@dimen/elevation_md"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/spacing_sm"
+            app:boxCornerRadiusBottomEnd="@dimen/corner_xl"
+            app:boxCornerRadiusBottomStart="@dimen/corner_xl"
+            app:boxCornerRadiusTopEnd="@dimen/corner_xl"
+            app:boxCornerRadiusTopStart="@dimen/corner_xl">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_comment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_add_comment"
+                android:inputType="textMultiLine"
+                android:maxLines="3" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_send_comment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_send"
+            app:cornerRadius="@dimen/corner_xl" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

@@ -3,11 +3,15 @@ package com.example.chronovault.data
 import android.content.Context
 import androidx.room.Room
 import com.example.chronovault.data.local.ChronoVaultDatabase
-import com.example.chronovault.data.remote.RetrofitClient
 import com.example.chronovault.data.remote.firebase.FirebaseAuthService
 import com.example.chronovault.data.remote.firebase.FirestoreCapsuleService
+import com.example.chronovault.data.remote.firebase.FirebaseUserService
+import com.example.chronovault.data.remote.firebase.FirebaseSharingService
+import com.example.chronovault.data.local.CommentDao
 import com.example.chronovault.data.repository.AuthRepository
 import com.example.chronovault.data.repository.CapsuleRepository
+import com.example.chronovault.data.repository.UserRepository
+import com.example.chronovault.data.repository.SharingRepository
 import com.example.chronovault.utils.PreferencesManager
 
 /**
@@ -19,9 +23,13 @@ object ServiceLocator {
     private var database: ChronoVaultDatabase? = null
     private var capsuleRepository: CapsuleRepository? = null
     private var authRepository: AuthRepository? = null
+    private var userRepository: UserRepository? = null
+    private var sharingRepository: SharingRepository? = null
     private var preferencesManager: PreferencesManager? = null
     private var firebaseAuthService: FirebaseAuthService? = null
     private var firestoreCapsuleService: FirestoreCapsuleService? = null
+    private var firebaseUserService: FirebaseUserService? = null
+    private var firebaseSharingService: FirebaseSharingService? = null
 
     @Volatile
     private var dbLock = Any()
@@ -32,7 +40,7 @@ object ServiceLocator {
                 context.applicationContext,
                 ChronoVaultDatabase::class.java,
                 ChronoVaultDatabase.DATABASE_NAME
-            ).build()
+            ).fallbackToDestructiveMigration().build()
             database = instance
             instance
         }
@@ -62,6 +70,22 @@ object ServiceLocator {
         }
     }
 
+    fun provideFirebaseUserService(): FirebaseUserService {
+        return firebaseUserService ?: synchronized(dbLock) {
+            val instance = FirebaseUserService()
+            firebaseUserService = instance
+            instance
+        }
+    }
+
+    fun provideFirebaseSharingService(): FirebaseSharingService {
+        return firebaseSharingService ?: synchronized(dbLock) {
+            val instance = FirebaseSharingService()
+            firebaseSharingService = instance
+            instance
+        }
+    }
+
     fun provideCapsuleRepository(context: Context): CapsuleRepository {
         return capsuleRepository ?: synchronized(dbLock) {
             val db = provideDatabase(context)
@@ -83,14 +107,42 @@ object ServiceLocator {
         }
     }
 
+    fun provideUserRepository(context: Context): UserRepository {
+        return userRepository ?: synchronized(dbLock) {
+            val firebaseUser = provideFirebaseUserService()
+            val prefs = providePreferencesManager(context)
+            val repo = UserRepository(firebaseUser, prefs)
+            userRepository = repo
+            repo
+        }
+    }
+
+    fun provideSharingRepository(context: Context): SharingRepository {
+        return sharingRepository ?: synchronized(dbLock) {
+            val firebaseSharing = provideFirebaseSharingService()
+            val prefs = providePreferencesManager(context)
+            val repo = SharingRepository(firebaseSharing, prefs)
+            sharingRepository = repo
+            repo
+        }
+    }
+
+    fun provideCommentDao(context: Context): CommentDao {
+        return provideDatabase(context).commentDao()
+    }
+
     fun resetRepositories() {
         synchronized(dbLock) {
             capsuleRepository = null
             authRepository = null
+            userRepository = null
+            sharingRepository = null
             database = null
             preferencesManager = null
             firebaseAuthService = null
             firestoreCapsuleService = null
+            firebaseUserService = null
+            firebaseSharingService = null
         }
     }
 }

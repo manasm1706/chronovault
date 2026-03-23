@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="?android:attr/colorBackground"
     tools:context=".ui.auth.SignupFragment">
 
     <ScrollView
@@ -21,7 +21,7 @@
             android:paddingTop="@dimen/spacing_xl"
             android:paddingBottom="@dimen/spacing_xxl">
 
-            <!-- Back Button -->
+            <!-- FIX: 7 -->
             <ImageButton
                 android:id="@+id/btn_back"
                 android:layout_width="@dimen/touch_target_min"
@@ -29,7 +29,8 @@
                 android:layout_marginStart="@dimen/spacing_md"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/button_cancel"
-                android:src="@drawable/ic_home_black_24dp"
+                android:src="@drawable/ic_arrow_back_24"
+                android:tint="?attr/colorOnSurface"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -42,7 +43,7 @@
                 android:layout_marginTop="@dimen/spacing_xl"
                 android:text="@string/title_signup"
                 android:textAppearance="@style/TextAppearance.ChronoVault.HeadlineSmall"
-                android:textColor="@color/primary"
+                android:textColor="?attr/colorPrimary"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/btn_back" />
 
@@ -178,7 +179,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/text_have_account"
                     android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
-                    android:textColor="@color/text_secondary" />
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <TextView
                     android:id="@+id/tv_login"
@@ -186,7 +187,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/text_login_here"
                     android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
-                    android:textColor="@color/primary"
+                    android:textColor="?attr/colorPrimary"
                     android:textStyle="bold" />
 
             </LinearLayout>
@@ -201,7 +202,7 @@
                 android:layout_marginEnd="@dimen/spacing_lg"
                 android:text=""
                 android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
-                android:textColor="@color/error"
+                android:textColor="?attr/colorError"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

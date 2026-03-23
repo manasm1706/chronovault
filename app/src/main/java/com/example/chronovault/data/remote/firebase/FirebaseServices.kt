@@ -2,7 +2,6 @@ package com.example.chronovault.data.remote.firebase
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -182,27 +181,42 @@ class FirestoreCapsuleService {
 }
 
 /**
- * Firebase Storage Service for Images
+ * Firebase Sharing Service for Capsule Permissions
  */
-class FirebaseStorageService {
+class FirebaseSharingService {
 
-    private val storage = FirebaseStorage.getInstance()
+    private val db = FirebaseFirestore.getInstance()
 
-    suspend fun uploadImage(userId: String, imageBytes: ByteArray, fileName: String): Result<String> {
+    suspend fun shareCapsule(capsuleId: String, sharedWithEmail: String): Result<Unit> {
         return try {
-            val ref = storage.reference.child("capsule_images/$userId/$fileName")
-            ref.putBytes(imageBytes).await()
-            val downloadUrl = ref.downloadUrl.await()
-            Result.success(downloadUrl.toString())
+            db.collection("capsules").document(capsuleId).update(
+                "sharedWith", com.google.firebase.firestore.FieldValue.arrayUnion(sharedWithEmail)
+            ).await()
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun deleteImage(imageUrl: String): Result<Unit> {
+    suspend fun removeCapsuleSharing(capsuleId: String, email: String): Result<Unit> {
         return try {
-            FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl).delete().await()
+            db.collection("capsules").document(capsuleId).update(
+                "sharedWith", com.google.firebase.firestore.FieldValue.arrayRemove(email)
+            ).await()
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getSharedWithMeCapsules(userEmail: String): Result<List<Map<String, Any>>> {
+        return try {
+            val docs = db.collection("capsules")
+                .whereArrayContains("sharedWith", userEmail)
+                .get()
+                .await()
+
+            Result.success(docs.documents.map { it.data?.plus("id" to it.id) ?: emptyMap() })
         } catch (e: Exception) {
             Result.failure(e)
         }

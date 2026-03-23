@@ -76,6 +76,19 @@ class CapsuleRepository(
         return capsuleDao.getLocationBasedCapsules()
     }
 
+    fun getCapsulesForMap(userId: String): Flow<List<CapsuleEntity>> {
+        return capsuleDao.getCapsulesForMap(userId)
+    }
+
+    suspend fun makeCapsulePrivate(capsuleId: String) {
+        capsuleDao.updateSharingEnabled(capsuleId, false)
+        capsuleDao.clearSharedWith(capsuleId)
+    }
+
+    suspend fun updateSharingEnabled(capsuleId: String, enabled: Boolean) {
+        capsuleDao.updateSharingEnabled(capsuleId, enabled)
+    }
+
     // Firebase Firestore methods
     suspend fun createCapsuleOnFirebase(capsuleData: Map<String, Any>): Result<String> {
         val userId = preferencesManager.getUserId() ?: return Result.failure(Exception("User not authenticated"))
@@ -89,7 +102,8 @@ class CapsuleRepository(
                 val data = mapOf(
                     "title" to capsule.title,
                     "message" to capsule.message,
-                    "imagePath" to (capsule.imagePath ?: ""),
+                    "imageBase64" to (capsule.imageBase64 ?: ""), // Base64 image stored in Firestore
+                    "imageMimeType" to capsule.imageMimeType,
                     "latitude" to capsule.latitude,
                     "longitude" to capsule.longitude,
                     "unlockTime" to (capsule.unlockTime ?: 0),
@@ -97,11 +111,45 @@ class CapsuleRepository(
                     "unlockLongitude" to (capsule.unlockLongitude ?: 0.0),
                     "isLocationBased" to capsule.isLocationBased,
                     "isTimeBased" to capsule.isTimeBased,
-                    "canBeShared" to capsule.canBeShared
+                    "canBeShared" to capsule.canBeShared,
+                    "sharedWith" to capsule.sharedWith
                 )
                 firestoreCapsuleService.createCapsule(userId, data)
             }
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun fetchCapsuleFromCloud(capsuleId: String): Result<CapsuleEntity> {
+        return try {
+            val result = firestoreCapsuleService.getCapsuleById(capsuleId)
+            if (result.isFailure) {
+                return Result.failure(result.exceptionOrNull() ?: Exception("Unknown error"))
+            }
+            val data = result.getOrThrow()
+            val capsule = CapsuleEntity(
+                id = data["id"] as? String ?: capsuleId,
+                title = data["title"] as? String ?: "",
+                message = data["message"] as? String ?: "",
+                imageBase64 = data["imageBase64"] as? String,
+                imageMimeType = data["imageMimeType"] as? String ?: "image/jpeg",
+                latitude = (data["latitude"] as? Number)?.toDouble() ?: 0.0,
+                longitude = (data["longitude"] as? Number)?.toDouble() ?: 0.0,
+                createdAt = (data["createdAt"] as? Number)?.toLong() ?: System.currentTimeMillis(),
+                unlockTime = (data["unlockTime"] as? Number)?.toLong(),
+                unlockLatitude = (data["unlockLatitude"] as? Number)?.toDouble(),
+                unlockLongitude = (data["unlockLongitude"] as? Number)?.toDouble(),
+                isUnlocked = data["isUnlocked"] as? Boolean ?: false,
+                isLocationBased = data["isLocationBased"] as? Boolean ?: false,
+                isTimeBased = data["isTimeBased"] as? Boolean ?: false,
+                ownerId = data["ownerId"] as? String ?: "",
+                sharedWith = (data["sharedWith"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
+                canBeShared = data["canBeShared"] as? Boolean ?: false
+            )
+            insertCapsule(capsule)
+            Result.success(capsule)
         } catch (e: Exception) {
             Result.failure(e)
         }

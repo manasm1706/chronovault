@@ -20,20 +20,30 @@
     <color name="success">#34d399</color>
     <color name="warning">#fbbf24</color>
     <color name="error">#f87171</color>
+    <color name="error_container">#4c1d1d</color>
 
     <!-- Background & Surface for dark mode -->
-    <color name="background">#0f1714</color>
-    <color name="surface">#1a2420</color>
-    <color name="surface_variant">#283b33</color>
+    <color name="background">#0f172a</color>
+    <color name="surface">#111827</color>
+    <color name="surface_variant">#1e293b</color>
 
     <!-- Text Colors for dark mode -->
-    <color name="text_primary">#f4f7f5</color>
-    <color name="text_secondary">#c4d0ca</color>
-    <color name="text_tertiary">#8a9a93</color>
+    <color name="text_primary">#f1f5f9</color>
+    <color name="text_secondary">#94a3b8</color>
+    <color name="text_tertiary">#64748b</color>
 
     <!-- Borders & Dividers for dark mode -->
-    <color name="border">#3a4d45</color>
-    <color name="divider">#2d3f38</color>
+    <color name="border">#334155</color>
+    <color name="divider">#1e293b</color>
+
+    <!-- Splash / On-dark overlays -->
+    <color name="splash_text_faded">#B0FFFFFF</color>
+
+    <!-- Status badge colors -->
+    <color name="badge_locked">#5aab96</color>
+    <color name="badge_unlocked">#34d399</color>
+    <color name="badge_shared">#e8c896</color>
+    <color name="badge_nearby">#22d3ee</color>
 
     <!-- Legacy colors -->
     <color name="black">#FF000000</color>

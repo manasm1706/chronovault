@@ -95,5 +95,52 @@ object NotificationHelper {
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(notificationId, builder.build())
     }
-}
 
+    /**
+     * Send capsule unlocked notification
+     */
+    fun sendCapsuleUnlockedNotification(context: Context, title: String, message: String) {
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setAutoCancel(true)
+            .setColor(context.getColor(R.color.primary))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVibrate(longArrayOf(0, 500))
+
+        showNotification(context, NOTIFICATION_ID_UNLOCK, builder)
+    }
+
+    /**
+     * Send location-based unlock notification
+     */
+    fun sendLocationBasedUnlockNotification(context: Context, title: String, message: String) {
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setAutoCancel(true)
+            .setColor(context.getColor(R.color.primary))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVibrate(longArrayOf(0, 500))
+
+        showNotification(context, NOTIFICATION_ID_NEARBY, builder)
+    }
+
+    /**
+     * Send shared capsule notification
+     */
+    fun sendSharedNotification(context: Context, title: String, message: String) {
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setAutoCancel(true)
+            .setColor(context.getColor(R.color.primary))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVibrate(longArrayOf(0, 500))
+
+        showNotification(context, NOTIFICATION_ID_SHARED, builder)
+    }
+}

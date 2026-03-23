@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 
 /**
  * LoginFragment - Email/Password login screen
- * Integrates with MongoDB Atlas for authentication
+ * Integrates with Firebase Authentication
  */
 class LoginFragment : Fragment() {
 
@@ -34,21 +34,14 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupUI()
         observeViewModel()
     }
 
     private fun setupUI() {
-        binding.etEmail.setOnTextChanged { email ->
-            viewModel.setEmail(email)
-        }
-
-        binding.etPassword.setOnTextChanged { password ->
-            viewModel.setPassword(password)
-        }
-
         binding.btnLogin.setOnClickListener {
+            viewModel.setEmail(binding.etEmail.text.toString().trim())
+            viewModel.setPassword(binding.etPassword.text.toString().trim())
             viewModel.login()
         }
 
@@ -84,8 +77,7 @@ class LoginFragment : Fragment() {
             is LoginState.Success -> {
                 binding.progressLogin.visibility = View.GONE
                 binding.btnLogin.isEnabled = true
-                // Navigate to home screen
-                findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+                (activity as? AuthActivity)?.navigateToMainApp()
             }
 
             is LoginState.Error -> {
@@ -95,15 +87,6 @@ class LoginFragment : Fragment() {
                 binding.tvError.visibility = View.VISIBLE
             }
         }
-    }
-
-    private fun <T> com.google.android.material.textfield.TextInputEditText.setOnTextChanged(callback: (String) -> Unit) {
-        this.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                callback(this.text.toString())
-            }
-        }
-        // Optional: Real-time input handling
     }
 }
 

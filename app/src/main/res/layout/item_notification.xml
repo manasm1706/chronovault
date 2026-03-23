@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_notification"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="@dimen/corner_md"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardElevation="@dimen/elevation_md">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/spacing_md">
+
+        <!-- Icon -->
+        <ImageView
+            android:id="@+id/iv_icon"
+            android:layout_width="@dimen/icon_size_xl"
+            android:layout_height="@dimen/icon_size_xl"
+            android:contentDescription="@string/notification_icon_desc"
+            android:src="@drawable/ic_asset_contacts"
+            android:scaleType="centerInside"
+            android:layout_marginEnd="@dimen/spacing_md" />
+
+        <!-- Content -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical">
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/placeholder_notification_title"
+                android:textAppearance="@style/TextAppearance.ChronoVault.TitleSmall"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Message -->
+            <TextView
+                android:id="@+id/tv_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/placeholder_notification_message"
+                android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginBottom="4dp"
+                android:maxLines="2"
+                android:ellipsize="end" />
+
+            <!-- Time -->
+            <TextView
+                android:id="@+id/tv_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/placeholder_notification_time"
+                android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+
+        <!-- Delete Button -->
+        <ImageButton
+            android:id="@+id/btn_delete"
+            android:layout_width="@dimen/icon_size_lg"
+            android:layout_height="@dimen/icon_size_lg"
+            android:contentDescription="@string/notification_delete_desc"
+            android:src="@drawable/ic_asset_cog"
+            android:scaleType="centerInside"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_gravity="center" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
+
