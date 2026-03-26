@@ -148,7 +148,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 )
                 capsule to distance
             }
-            .filter { (_, distance) -> distance <= 100f }
+            // FIX: 15
+            .filter { (_, distance) -> distance <= 50f }
             .minByOrNull { (_, distance) -> distance }
             ?.first
 

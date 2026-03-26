@@ -39,7 +39,7 @@ object LocationHelper {
      * @param userLon Current user longitude
      * @param targetLat Target location latitude
      * @param targetLon Target location longitude
-     * @param radiusMeters Radius in meters (default 100m)
+     * @param radiusMeters Radius in meters (default 50m)
      * @return True if user is within radius
      */
     fun isWithinRadius(
@@ -47,7 +47,8 @@ object LocationHelper {
         userLon: Double,
         targetLat: Double,
         targetLon: Double,
-        radiusMeters: Float = 100f
+        // FIX: 15
+        radiusMeters: Float = 50f
     ): Boolean {
         val distance = calculateDistance(userLat, userLon, targetLat, targetLon)
         return distance <= radiusMeters

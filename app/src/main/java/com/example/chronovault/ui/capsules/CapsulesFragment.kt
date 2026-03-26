@@ -11,17 +11,11 @@ import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.core.os.bundleOf
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.chronovault.R
 import com.example.chronovault.databinding.FragmentCapsulesBinding
 import com.example.chronovault.ui.home.HomeFragment
 import com.example.chronovault.ui.common.LoadingState
-import kotlinx.coroutines.launch
 
 /**
  * CapsulesFragment - Display user's capsules with filtering
@@ -105,8 +99,8 @@ class CapsulesFragment : Fragment() {
     }
 
     private fun updateFilterUi(filter: FilterType) {
-        val selectedColor = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), com.example.chronovault.R.color.primary))
-        val unselectedColor = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), com.example.chronovault.R.color.surface))
+        val selectedColor = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.primary))
+        val unselectedColor = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.surface))
 
         val chips = mapOf(
             binding.chipAll to FilterType.ALL,
@@ -121,7 +115,7 @@ class CapsulesFragment : Fragment() {
             chip.setTextColor(
                 ContextCompat.getColor(
                     requireContext(),
-                    if (isSelected) com.example.chronovault.R.color.white else com.example.chronovault.R.color.text_primary
+                    if (isSelected) R.color.white else R.color.text_primary
                 )
             )
         }
@@ -150,32 +144,14 @@ class CapsulesFragment : Fragment() {
         if (!isAdded || id.isBlank()) return
 
         // FIX: unlocked-memory-crash
-        val navigated = runCatching {
-            val navController = findNavController()
-            if (navController.currentDestination?.id != R.id.navigation_capsules) return@runCatching false
-            navController.navigate(
-                R.id.action_capsulesFragment_to_capsuleDetailsActivity,
-                bundleOf(CAPSULE_ID_ARG to id)
-            )
-            true
-        }.getOrElse { throwable ->
-            Log.e("CapsuleClick", "NavController navigation failed for capsuleId=$id", throwable)
-            false
-        }
-
-        if (navigated) {
-            pendingOpenCapsuleId = null
-            return
-        }
-
-        // FIX: unlocked-memory-crash
+        // Use one direct Activity path to avoid intermittent activity-destination nav crashes.
         runCatching {
             startActivity(Intent(requireContext(), CapsuleDetailsActivity::class.java).apply {
                 putExtra(CAPSULE_ID_ARG, id)
             })
             pendingOpenCapsuleId = null
         }.onFailure { throwable ->
-            Log.e("CapsuleClick", "Fallback activity launch failed for capsuleId=$id", throwable)
+            Log.e("CapsuleClick", "Activity launch failed for capsuleId=$id", throwable)
             pendingOpenCapsuleId = id
         }
     }
@@ -196,30 +172,26 @@ class CapsulesFragment : Fragment() {
     private fun showLockedMessage(capsule: com.example.chronovault.data.local.entity.CapsuleEntity) {
         // FIX: 4
         AlertDialog.Builder(requireContext())
-            .setTitle(getString(com.example.chronovault.R.string.status_locked))
+            .setTitle(getString(R.string.status_locked))
             .setMessage(viewModel.getLockedMessage(capsule))
-            .setPositiveButton(com.example.chronovault.R.string.dismiss, null)
+            .setPositiveButton(R.string.dismiss, null)
             .show()
     }
 
     private fun observeViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.capsulesList.observe(viewLifecycleOwner) { capsules ->
-                    adapter.submitList(capsules)
-                }
+        viewModel.capsulesList.observe(viewLifecycleOwner) { capsules ->
+            adapter.submitList(capsules)
+        }
 
-                viewModel.loadingState.observe(viewLifecycleOwner) { state ->
-                    when (state) {
-                        LoadingState.Loading -> binding.progressCapsules.visibility = View.VISIBLE
-                        LoadingState.Success -> binding.progressCapsules.visibility = View.GONE
-                        is LoadingState.Error -> {
-                            binding.progressCapsules.visibility = View.GONE
-                            showError(state.message)
-                        }
-                        LoadingState.Idle -> {}
-                    }
+        viewModel.loadingState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                LoadingState.Loading -> binding.progressCapsules.visibility = View.VISIBLE
+                LoadingState.Success -> binding.progressCapsules.visibility = View.GONE
+                is LoadingState.Error -> {
+                    binding.progressCapsules.visibility = View.GONE
+                    showError(state.message)
                 }
+                LoadingState.Idle -> {}
             }
         }
     }

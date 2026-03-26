@@ -13,9 +13,6 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.chronovault.R
 import com.example.chronovault.databinding.ActivityCapsuleDetailsBinding
@@ -23,7 +20,6 @@ import com.example.chronovault.ui.common.LoadingState
 import com.example.chronovault.utils.ImageConverter
 import com.example.chronovault.utils.LocationHelper
 import com.google.android.gms.location.LocationServices
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -134,59 +130,55 @@ class CapsuleDetailsActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.capsule.observe(this@CapsuleDetailsActivity) { capsule ->
-                    capsule?.let { bindCapsuleData(it) }
-                }
+        viewModel.capsule.observe(this@CapsuleDetailsActivity) { capsule ->
+            capsule?.let { bindCapsuleData(it) }
+        }
 
-                viewModel.isOwner.observe(this@CapsuleDetailsActivity) { isOwner ->
-                    binding.btnDelete.visibility = if (isOwner) View.VISIBLE else View.GONE
-                    // FIX: 3
-                    binding.btnShare.visibility = if (isOwner && !isCurrentlyLockedByGate) View.VISIBLE else View.GONE
-                    binding.layoutSharedWith.visibility = if (isOwner && !isCurrentlyLockedByGate) View.VISIBLE else View.GONE
-                }
+        viewModel.isOwner.observe(this@CapsuleDetailsActivity) { isOwner ->
+            binding.btnDelete.visibility = if (isOwner) View.VISIBLE else View.GONE
+            // FIX: 3
+            binding.btnShare.visibility = if (isOwner && !isCurrentlyLockedByGate) View.VISIBLE else View.GONE
+            binding.layoutSharedWith.visibility = if (isOwner && !isCurrentlyLockedByGate) View.VISIBLE else View.GONE
+        }
 
-                viewModel.isSharedCapsule.observe(this@CapsuleDetailsActivity) { isShared ->
-                    val isOwner = viewModel.isOwner.value == true
-                    // FIX: 3
-                    binding.btnMakePrivate.visibility = if (isShared && isOwner && !isCurrentlyLockedByGate) View.VISIBLE else View.GONE
-                    // Show comment input for shared capsules (both owner and shared users can comment)
-                    binding.commentInputLayout.visibility = if (isShared && !isCurrentlyLockedByGate) View.VISIBLE else View.GONE
-                    binding.layoutComments.visibility = if (isShared && !isCurrentlyLockedByGate) View.VISIBLE else View.GONE
-                }
+        viewModel.isSharedCapsule.observe(this@CapsuleDetailsActivity) { isShared ->
+            val isOwner = viewModel.isOwner.value == true
+            // FIX: 3
+            binding.btnMakePrivate.visibility = if (isShared && isOwner && !isCurrentlyLockedByGate) View.VISIBLE else View.GONE
+            // Show comment input for shared capsules (both owner and shared users can comment)
+            binding.commentInputLayout.visibility = if (isShared && !isCurrentlyLockedByGate) View.VISIBLE else View.GONE
+            binding.layoutComments.visibility = if (isShared && !isCurrentlyLockedByGate) View.VISIBLE else View.GONE
+        }
 
-                viewModel.unlockReason.observe(this@CapsuleDetailsActivity) { reason ->
-                    binding.tvUnlockReason.text = reason
-                }
+        viewModel.unlockReason.observe(this@CapsuleDetailsActivity) { reason ->
+            binding.tvUnlockReason.text = reason
+        }
 
-                viewModel.sharedWithEmails.observe(this@CapsuleDetailsActivity) { emails ->
-                    sharedWithAdapter.submitList(emails.toList())
-                    binding.tvNoShares.visibility = if (emails.isEmpty()) View.VISIBLE else View.GONE
-                    binding.rvSharedWith.visibility = if (emails.isNotEmpty()) View.VISIBLE else View.GONE
-                }
+        viewModel.sharedWithEmails.observe(this@CapsuleDetailsActivity) { emails ->
+            sharedWithAdapter.submitList(emails.toList())
+            binding.tvNoShares.visibility = if (emails.isEmpty()) View.VISIBLE else View.GONE
+            binding.rvSharedWith.visibility = if (emails.isNotEmpty()) View.VISIBLE else View.GONE
+        }
 
-                viewModel.comments.observe(this@CapsuleDetailsActivity) { commentList ->
-                    commentsAdapter.submitList(commentList)
-                    binding.tvNoComments.visibility = if (commentList.isEmpty()) View.VISIBLE else View.GONE
-                    binding.rvComments.visibility = if (commentList.isNotEmpty()) View.VISIBLE else View.GONE
-                }
+        viewModel.comments.observe(this@CapsuleDetailsActivity) { commentList ->
+            commentsAdapter.submitList(commentList)
+            binding.tvNoComments.visibility = if (commentList.isEmpty()) View.VISIBLE else View.GONE
+            binding.rvComments.visibility = if (commentList.isNotEmpty()) View.VISIBLE else View.GONE
+        }
 
-                viewModel.actionState.observe(this@CapsuleDetailsActivity) { state ->
-                    handleActionState(state)
-                }
+        viewModel.actionState.observe(this@CapsuleDetailsActivity) { state ->
+            handleActionState(state)
+        }
 
-                viewModel.loadingState.observe(this@CapsuleDetailsActivity) { state ->
-                    when (state) {
-                        LoadingState.Loading -> binding.progressDetails.visibility = View.VISIBLE
-                        LoadingState.Success -> binding.progressDetails.visibility = View.GONE
-                        is LoadingState.Error -> {
-                            binding.progressDetails.visibility = View.GONE
-                            Toast.makeText(this@CapsuleDetailsActivity, state.message, Toast.LENGTH_SHORT).show()
-                        }
-                        LoadingState.Idle -> {}
-                    }
+        viewModel.loadingState.observe(this@CapsuleDetailsActivity) { state ->
+            when (state) {
+                LoadingState.Loading -> binding.progressDetails.visibility = View.VISIBLE
+                LoadingState.Success -> binding.progressDetails.visibility = View.GONE
+                is LoadingState.Error -> {
+                    binding.progressDetails.visibility = View.GONE
+                    Toast.makeText(this@CapsuleDetailsActivity, state.message, Toast.LENGTH_SHORT).show()
                 }
+                LoadingState.Idle -> {}
             }
         }
     }
@@ -398,7 +390,11 @@ class CapsuleDetailsActivity : AppCompatActivity() {
             }
             ActionState.Idle -> {}
         }
-        viewModel.resetActionState()
+        // FIX: unlocked-memory-crash
+        // Avoid re-emitting Idle from an already-Idle state, which can loop callbacks.
+        if (state !is ActionState.Idle) {
+            viewModel.resetActionState()
+        }
     }
 
     private fun showShareDialog() {
@@ -455,6 +451,7 @@ class CapsuleDetailsActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val LOCATION_UNLOCK_RADIUS_METERS = 100f
+        // FIX: 15
+        private const val LOCATION_UNLOCK_RADIUS_METERS = 50f
     }
 }

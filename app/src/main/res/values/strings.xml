@@ -101,6 +101,10 @@
     <string name="button_cancel">Cancel</string>
     <string name="hint_capsule_title">Give your memory a name</string>
     <string name="hint_capsule_message">Write your thoughts, feelings, and memories</string>
+    <string name="create_unlockless_title">Create instantly unlocked memory?</string>
+    <string name="create_unlockless_message">No unlock method is set. This capsule will be created already unlocked. Do you want to continue?</string>
+    <string name="create_unlockless_continue">Continue</string>
+    <string name="create_unlockless_go_back">Go Back</string>
 
     <!-- Capsule Details -->
     <string name="title_capsule_details">Capsule Details</string>
@@ -122,6 +126,9 @@
     <string name="marker_unlocked">Unlocked Capsule</string>
     <string name="marker_nearby">Nearby Capsule</string>
     <string name="marker_shared">Shared Capsule</string>
+    <string name="map_mode_personal">Personal</string>
+    <string name="map_mode_world">World</string>
+    <string name="map_mode_content_desc">Map mode switch</string>
 
     <!-- Notifications -->
     <string name="title_alerts">Alerts</string>

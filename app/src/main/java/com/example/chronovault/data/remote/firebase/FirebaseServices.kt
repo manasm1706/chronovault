@@ -69,11 +69,13 @@ class FirestoreCapsuleService {
 
     suspend fun createCapsule(userId: String, capsuleData: Map<String, Any>): Result<String> {
         return try {
+            // FIX: 15
+            val initialUnlocked = capsuleData["isUnlocked"] as? Boolean ?: false
             val docRef = db.collection(capsuleCollection).add(
                 capsuleData.toMutableMap().apply {
                     this["ownerId"] = userId
                     this["createdAt"] = System.currentTimeMillis()
-                    this["isUnlocked"] = false
+                    this["isUnlocked"] = initialUnlocked
                 }
             ).await()
             Result.success(docRef.id)
@@ -141,7 +143,8 @@ class FirestoreCapsuleService {
     suspend fun getNearbyCapules(
         latitude: Double,
         longitude: Double,
-        radiusMeters: Float = 100f
+        // FIX: 15
+        radiusMeters: Float = 50f
     ): Result<List<Map<String, Any>>> {
         return try {
             // Get all capsules and filter by distance in app

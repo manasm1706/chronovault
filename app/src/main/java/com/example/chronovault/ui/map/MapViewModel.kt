@@ -10,6 +10,7 @@ import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.data.local.entity.CapsuleEntity
 import com.example.chronovault.data.repository.CapsuleRepository
 import com.example.chronovault.ui.common.LoadingState
+import com.example.chronovault.utils.LocationHelper
 import com.example.chronovault.utils.PreferencesManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -29,9 +30,14 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     val userLocation: LiveData<Pair<Double, Double>?> = _userLocation
 
     private val _capsuleMarkers = MutableLiveData<List<CapsuleEntity>>(emptyList())
-    // FIX: 13
-    // MapFragment observes all map capsules from Room via this stream.
-    val allCapsules: LiveData<List<CapsuleEntity>> = _capsuleMarkers
+    private val _visibleCapsules = MutableLiveData<List<CapsuleEntity>>(emptyList())
+    // FIX: 15
+    // MapFragment observes currently selected map mode capsules via this stream.
+    val allCapsules: LiveData<List<CapsuleEntity>> = _visibleCapsules
+
+    // FIX: 15
+    private val _mapMode = MutableLiveData(MapMode.PERSONAL)
+    val mapMode: LiveData<MapMode> = _mapMode
 
     private val _nearbyCapsules = MutableLiveData<List<CapsuleEntity>>(emptyList())
 
@@ -64,6 +70,8 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
                 capsuleRepository.getCapsulesForMap(userId).collect { capsules ->
                     _capsuleMarkers.value = capsules
+                    // FIX: 15
+                    updateVisibleCapsules(capsules)
                     _loadingState.value = LoadingState.Success
                     capsules.forEach { capsule ->
                         Log.d("MAP", "Lat: ${capsule.latitude}, Lng: ${capsule.longitude}, id=${capsule.id}")
@@ -82,6 +90,15 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     fun setUserLocation(latitude: Double, longitude: Double) {
         _userLocation.value = Pair(latitude, longitude)
         checkNearbyCapules(latitude, longitude)
+        // FIX: 15
+        updateVisibleCapsules(_capsuleMarkers.value.orEmpty())
+    }
+
+    // FIX: 15
+    fun setMapMode(mode: MapMode) {
+        if (_mapMode.value == mode) return
+        _mapMode.value = mode
+        updateVisibleCapsules(_capsuleMarkers.value.orEmpty())
     }
 
     fun onLocationPermissionGranted(granted: Boolean) {
@@ -101,13 +118,44 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
                         userLat, userLon,
                         capsule.latitude, capsule.longitude
                     )
-                    distance <= 100f // 100 meters radius
+                    // FIX: 15
+                    distance <= 50f
                 }
                 _nearbyCapsules.value = nearby
             } catch (_: Exception) {
                 // Silently fail on nearby check
             }
         }
+    }
+
+    // FIX: 15
+    private fun updateVisibleCapsules(source: List<CapsuleEntity>) {
+        val visible = when (_mapMode.value ?: MapMode.PERSONAL) {
+            MapMode.PERSONAL -> source.filter { isOwnedByCurrentUser(it) }
+            MapMode.WORLD -> {
+                val location = _userLocation.value
+                if (location == null) {
+                    emptyList()
+                } else {
+                    source.filter { capsule ->
+                        val isWorldShared = !isOwnedByCurrentUser(capsule) &&
+                            (capsule.isSharedWithMe || capsule.sharedWith.isNotEmpty() || capsule.canBeShared)
+                        if (!isWorldShared) {
+                            false
+                        } else {
+                            val distance = LocationHelper.calculateDistance(
+                                location.first,
+                                location.second,
+                                capsule.latitude,
+                                capsule.longitude
+                            )
+                            distance <= WORLD_RADIUS_METERS
+                        }
+                    }
+                }
+            }
+        }
+        _visibleCapsules.value = visible
     }
 
     private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
@@ -153,6 +201,17 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
                 capsuleRepository.unlockCapsule(capsule.id)
             }
         }
+    }
+
+    // FIX: 15
+    enum class MapMode {
+        PERSONAL,
+        WORLD
+    }
+
+    companion object {
+        // FIX: 15
+        private const val WORLD_RADIUS_METERS = 10_000f
     }
 
 }

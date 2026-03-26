@@ -2,7 +2,7 @@
 
 Preserve moments in time capsules that unlock by time or location, then rediscover them later.
 
-## Current Project State (March 23, 2026)
+## Current Project State (March 26, 2026)
 
 This README is organized by page, then by task, then by the functions/classes that implement each task.
 
@@ -95,7 +95,7 @@ Bottom navigation pages:
 ### Task: Nearby memory card
 - Status: `WORKING`
 - Functions/classes:
-  - `HomeViewModel.updateNearbyCapsule()` computes nearest capsule within 100m.
+  - `HomeViewModel.updateNearbyCapsule()` computes nearest capsule within 50m.
   - `HomeFragment.shouldOpenNearbyDetails()` picks button behavior:
     - unlocked/effectively unlocked/no lock conditions -> view details flow
     - locked -> go to map focus
@@ -149,6 +149,7 @@ Bottom navigation pages:
   - `CreateCapsuleActivity.requestLocationAndCapture()` permission flow.
   - `CreateCapsuleActivity.captureCurrentLocation()` captures fresh/last known location.
   - `CapsulesViewModel.createCapsule()` validates fields and inserts into Room/repository.
+  - If no unlock method is selected, `CreateCapsuleActivity.showNoUnlockConfirmationDialog()` asks whether to continue; continuing creates an already-unlocked capsule.
 
 ### Task: Image attach and compression
 - Status: `WORKING`
@@ -196,6 +197,14 @@ Bottom navigation pages:
 - Functions/classes:
   - `MapViewModel.allCapsules` observed by `MapFragment.observeViewModel()`.
   - `MapFragment.updateMapMarkers()` clears overlays and redraws markers from Room data.
+
+### Task: Map mode switch (Personal / World)
+- Status: `WORKING`
+- Functions/classes:
+  - `MapViewModel.MapMode` and `MapViewModel.setMapMode()` control the active data slice.
+  - Personal mode shows current user capsules.
+  - World mode shows non-owned shared/shareable capsules within 10km of current location.
+  - `fragment_map.xml` contains top toggle card with `Personal` and `World` options.
 
 ### Task: Correct marker coordinates and focus
 - Status: `WORKING`
@@ -276,6 +285,13 @@ Bottom navigation pages:
   - `persistExpiredTimeUnlocks()` is used in `HomeViewModel`, `CapsulesViewModel`, `MapViewModel`, `CapsuleDetailsViewModel`.
   - Ensures expired time-locked memories stay unlocked.
 
+### Task: Location unlock radius
+- Status: `WORKING`
+- Functions/classes:
+  - Location unlock gate uses 50m in `CapsuleDetailsActivity`.
+  - Background unlock uses 50m in `LocationBasedUnlockWorker`.
+  - Nearby logic uses 50m in `HomeViewModel` and `MapViewModel`.
+
 ### Task: Background unlock workers
 - Status: `WORKING`
 - Functions/classes:
@@ -290,6 +306,7 @@ Bottom navigation pages:
 - `PARTIAL`: Notifications backend integration is still mocked in `NotificationsViewModel.loadNotifications()`.
 - `PARTIAL`: Some UI text in `CapsulePreviewBottomSheet.kt` still uses hardcoded strings and should be moved to string resources.
 - `PARTIAL`: Memory details open through `CapsuleDetailsActivity` destination (not yet converted to a dedicated detail Fragment page).
+- `PARTIAL`: User-reported issue (Mar 26, 2026): app crashes when opening unlocked capsule details in some flows. Mitigations now include direct `Intent` launch path in `CapsulesFragment.navigateToDetails()`, safer capsule ID extraction in `CapsuleDetailsActivity`, removal of repeated observer registration, and prevention of `ActionState.Idle` reset loops; pending user verification on device.
 
 ---
 
@@ -303,4 +320,4 @@ Bottom navigation pages:
 
 ---
 
-Last updated: March 23, 2026
+Last updated: March 26, 2026

@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -82,8 +83,26 @@ class MapFragment : Fragment() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
         setupMap()
+        // FIX: 15
+        setupModeToggle()
         observeViewModel()
         requestLocationPermissions()
+    }
+
+    // FIX: 15
+    private fun setupModeToggle() {
+        binding.toggleMapMode.check(R.id.btn_mode_personal)
+
+        binding.btnModePersonal.setOnClickListener {
+            viewModel.setMapMode(MapViewModel.MapMode.PERSONAL)
+        }
+
+        binding.btnModeWorld.setOnClickListener {
+            if (viewModel.userLocation.value == null) {
+                Toast.makeText(requireContext(), R.string.location_permission_rationale, Toast.LENGTH_SHORT).show()
+            }
+            viewModel.setMapMode(MapViewModel.MapMode.WORLD)
+        }
     }
 
     private fun setupMap() {
@@ -96,6 +115,18 @@ class MapFragment : Fragment() {
     private fun observeViewModel() {
         viewModel.allCapsules.observe(viewLifecycleOwner) { capsules ->
             updateMapMarkers(capsules)
+        }
+
+        // FIX: 15
+        viewModel.mapMode.observe(viewLifecycleOwner) { mode ->
+            val selectedId = if (mode == MapViewModel.MapMode.PERSONAL) {
+                R.id.btn_mode_personal
+            } else {
+                R.id.btn_mode_world
+            }
+            if (binding.toggleMapMode.checkedButtonId != selectedId) {
+                binding.toggleMapMode.check(selectedId)
+            }
         }
 
         viewModel.userLocation.observe(viewLifecycleOwner) { location ->

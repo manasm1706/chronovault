@@ -199,7 +199,12 @@ class CreateCapsuleActivity : AppCompatActivity() {
                 viewModel.apply {
                     setTitle(etTitle.text.toString())
                     setMessage(etMessage.text.toString())
-                    createCapsule()
+                    // FIX: 15
+                    if (hasNoUnlockMethodSelected()) {
+                        showNoUnlockConfirmationDialog()
+                    } else {
+                        createCapsule()
+                    }
                 }
             }
 
@@ -248,6 +253,25 @@ class CreateCapsuleActivity : AppCompatActivity() {
     private fun formatDate(timestamp: Long): String {
         val sdf = java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault())
         return sdf.format(java.util.Date(timestamp))
+    }
+
+    // FIX: 15
+    private fun hasNoUnlockMethodSelected(): Boolean {
+        val hasTimeUnlock = viewModel.unlockDate.value != null && (viewModel.isTimeBased.value == true)
+        val hasLocationUnlock = viewModel.isLocationBased.value == true
+        return !hasTimeUnlock && !hasLocationUnlock
+    }
+
+    // FIX: 15
+    private fun showNoUnlockConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.create_unlockless_title)
+            .setMessage(R.string.create_unlockless_message)
+            .setPositiveButton(R.string.create_unlockless_continue) { _, _ ->
+                viewModel.createCapsule()
+            }
+            .setNegativeButton(R.string.create_unlockless_go_back, null)
+            .show()
     }
 }
 

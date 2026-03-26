@@ -48,8 +48,9 @@ class LocationBasedUnlockWorker(
                         capsule.latitude, capsule.longitude
                     )
 
-                    // If within 100 meters, unlock
-                    if (distance <= 100f && !capsule.isUnlocked) {
+                    // FIX: 15
+                    // If within 50 meters, unlock
+                    if (distance <= 50f && !capsule.isUnlocked) {
                         capsuleRepository.unlockCapsule(capsule.id)
 
                         // Send notification

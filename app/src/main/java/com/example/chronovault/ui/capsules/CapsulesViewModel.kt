@@ -193,6 +193,10 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
             try {
                 val capsuleId = UUID.randomUUID().toString()
                 val isLocBased = _isLocationBased.value ?: false
+                // FIX: 15
+                val isTimeBased = _isTimeBased.value ?: false
+                val hasUnlockMethod = isLocBased || isTimeBased
+                val startsUnlocked = !hasUnlockMethod
                 val capsule = CapsuleEntity(
                     id = capsuleId,
                     title = title,
@@ -204,9 +208,9 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
                     unlockTime = _unlockDate.value,
                     unlockLatitude = if (isLocBased) latitude else null,
                     unlockLongitude = if (isLocBased) longitude else null,
-                    isUnlocked = false,
+                    isUnlocked = startsUnlocked,
                     isLocationBased = isLocBased,
-                    isTimeBased = _isTimeBased.value ?: false,
+                    isTimeBased = isTimeBased,
                     ownerId = userId,
                     canBeShared = _canShare.value ?: false
                 )
@@ -225,6 +229,8 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
                     "unlockTime" to (_unlockDate.value ?: 0),
                     "isLocationBased" to (_isLocationBased.value ?: false),
                     "isTimeBased" to (_isTimeBased.value ?: false),
+                    // FIX: 15
+                    "isUnlocked" to startsUnlocked,
                     "canBeShared" to (_canShare.value ?: false)
                 )
 
@@ -256,12 +262,14 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
         // FIX: 12
         val now = System.currentTimeMillis()
         val isTimeUnlocked = c.isTimeBased && (c.unlockTime ?: 0L) in 1..now
+        // FIX: 15
+        val hasNoUnlockMethod = !c.isTimeBased && !c.isLocationBased
 
         val isOwner = currentUserId != null && c.ownerId == currentUserId
         val isShared = c.isSharedWithMe
 
         return when {
-            c.isUnlocked || isTimeUnlocked -> true
+            c.isUnlocked || isTimeUnlocked || hasNoUnlockMethod -> true
             isOwner && !c.isUnlocked -> false
             isShared && c.isDiscovered -> true
             else -> false
