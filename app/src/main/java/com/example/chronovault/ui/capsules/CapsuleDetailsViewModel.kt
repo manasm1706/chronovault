@@ -16,6 +16,7 @@ import com.example.chronovault.utils.PreferencesManager
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.UUID
+import java.util.Locale
 
 /**
  * ViewModel for Capsule Details screen
@@ -150,8 +151,13 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
 
     fun shareCapsule(userEmail: String) {
         val currentCapsule = _capsule.value ?: return
+        val normalizedEmail = userEmail.trim().lowercase(Locale.US)
         if (_isOwner.value != true) {
             _actionState.value = ActionState.Error("Only the owner can share")
+            return
+        }
+        if (normalizedEmail.isBlank() || !normalizedEmail.contains("@")) {
+            _actionState.value = ActionState.Error("Please enter a valid email")
             return
         }
         _actionState.value = ActionState.Loading
@@ -161,13 +167,13 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
                 if (!currentCapsule.canBeShared) {
                     capsuleRepository.updateSharingEnabled(currentCapsule.id, true)
                 }
-                sharingRepository.shareCapsuleWithUser(currentCapsule.id, userEmail)
+                sharingRepository.shareCapsuleWithUser(currentCapsule.id, normalizedEmail)
                     .onSuccess {
                         val updated = _sharedWithEmails.value.orEmpty().toMutableList()
-                        if (!updated.contains(userEmail)) updated.add(userEmail)
+                        if (!updated.contains(normalizedEmail)) updated.add(normalizedEmail)
                         _sharedWithEmails.value = updated
                         _isSharedCapsule.value = true
-                        _actionState.value = ActionState.Success("Shared with $userEmail")
+                        _actionState.value = ActionState.Success("Shared with $normalizedEmail")
                     }
                     .onFailure {
                         _actionState.value = ActionState.Error(it.message ?: "Failed to share")

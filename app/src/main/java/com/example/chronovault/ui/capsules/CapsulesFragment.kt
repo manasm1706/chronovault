@@ -149,17 +149,33 @@ class CapsulesFragment : Fragment() {
     private fun navigateToDetails(id: String) {
         if (!isAdded || id.isBlank()) return
 
-        // FIX: 14
-        runCatching {
+        // FIX: unlocked-memory-crash
+        val navigated = runCatching {
             val navController = findNavController()
-            if (navController.currentDestination?.id != R.id.navigation_capsules) return
+            if (navController.currentDestination?.id != R.id.navigation_capsules) return@runCatching false
             navController.navigate(
                 R.id.action_capsulesFragment_to_capsuleDetailsActivity,
                 bundleOf(CAPSULE_ID_ARG to id)
             )
+            true
+        }.getOrElse { throwable ->
+            Log.e("CapsuleClick", "NavController navigation failed for capsuleId=$id", throwable)
+            false
+        }
+
+        if (navigated) {
+            pendingOpenCapsuleId = null
+            return
+        }
+
+        // FIX: unlocked-memory-crash
+        runCatching {
+            startActivity(Intent(requireContext(), CapsuleDetailsActivity::class.java).apply {
+                putExtra(CAPSULE_ID_ARG, id)
+            })
             pendingOpenCapsuleId = null
         }.onFailure { throwable ->
-            Log.e("CapsuleClick", "Navigation failed for capsuleId=$id", throwable)
+            Log.e("CapsuleClick", "Fallback activity launch failed for capsuleId=$id", throwable)
             pendingOpenCapsuleId = id
         }
     }
@@ -217,4 +233,3 @@ class CapsulesFragment : Fragment() {
         _binding = null
     }
 }
-

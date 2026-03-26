@@ -5,12 +5,13 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -49,14 +50,36 @@ class CapsuleDetailsActivity : AppCompatActivity() {
         binding = ActivityCapsuleDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // FIX: 3
-        capsuleId = intent.getStringExtra("capsule_id")
+        // FIX: unlocked-memory-crash
+        capsuleId = resolveCapsuleIdFromIntent()
+        if (capsuleId.isNullOrBlank()) {
+            Log.e("CapsuleDetails", "Missing capsule_id in intent extras")
+            Toast.makeText(this, "Unable to open this memory", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
         capsuleId?.let { viewModel.loadCapsule(it) }
         fetchLastKnownLocation()
 
         setupAdapters()
         setupUI()
         observeViewModel()
+    }
+
+    // FIX: unlocked-memory-crash
+    private fun resolveCapsuleIdFromIntent(): String? {
+        val direct = intent?.getStringExtra("capsule_id")?.takeIf { it.isNotBlank() }
+        if (direct != null) return direct
+
+        val extrasValue = intent?.extras?.getString("capsule_id")?.takeIf { it.isNotBlank() }
+        if (extrasValue != null) return extrasValue
+
+        return intent
+            ?.extras
+            ?.getBundle("android-support-nav:controller:deepLinkExtras")
+            ?.getString("capsule_id")
+            ?.takeIf { it.isNotBlank() }
     }
 
     private fun setupAdapters() {
@@ -194,9 +217,17 @@ class CapsuleDetailsActivity : AppCompatActivity() {
                 tvLocation.visibility = View.GONE
             }
 
-            capsule.imageBase64?.let { base64 ->
-                val bitmap = ImageConverter.base64ToBitmap(base64)
-                bitmap?.let { ivCapsuleImage.setImageBitmap(it) }
+            // FIX: unlocked-memory-crash
+            runCatching {
+                val bitmap = capsule.imageBase64?.let { ImageConverter.base64ToBitmap(it) }
+                if (bitmap != null) {
+                    ivCapsuleImage.setImageBitmap(bitmap)
+                } else {
+                    ivCapsuleImage.setImageDrawable(null)
+                }
+            }.onFailure { throwable ->
+                Log.e("CapsuleDetails", "Image decode failed for capsuleId=${capsule.id}", throwable)
+                ivCapsuleImage.setImageDrawable(null)
             }
         }
     }

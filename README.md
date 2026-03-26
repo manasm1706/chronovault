@@ -1,166 +1,306 @@
-# 🕰️ ChronoVault
+# ChronoVault
 
-> **Preserve Moments. Rediscover Yourself.**
+Preserve moments in time capsules that unlock by time or location, then rediscover them later.
 
-ChronoVault is a production-grade Android app that lets users create digital time capsules — sealed with memories, photos, and messages — that unlock based on a scheduled date or physical location proximity. Shared capsules support collaborative commenting.
+## Current Project State (March 23, 2026)
 
----
+This README is organized by page, then by task, then by the functions/classes that implement each task.
 
-## 📊 Project Status
+Status legend:
+- `WORKING`: Implemented and wired in current navigation flow.
+- `PARTIAL`: Implemented in UI/code, but still limited or not fully production-complete.
 
-| Area | Status | Notes |
-|------|--------|-------|
-| Authentication (Firebase) | ✅ Working | Email/password login & signup |
-| Capsule CRUD | ✅ Working | Create, view, edit, delete with Room + Firestore sync |
-| GPS Location Capture | ✅ Working | Auto-captured on capsule creation |
-| Map Display (OSMDroid) | ✅ Working | Capsule markers at real GPS coordinates |
-| Time-Based Unlock | ✅ Working | WorkManager checks every 15 min |
-| Location-Based Unlock | ✅ Working | WorkManager checks every 30 min (100m radius) |
-| Notifications | ✅ Working | Local notifications on unlock events |
-| Sharing System | ✅ Working | Share by email, view shared-with list, remove individual shares |
-| Make Private | ✅ Working | Revoke all shares and disable sharing with one tap |
-| Comments on Shared Capsules | ✅ Working | Comment thread on any shared capsule; delete own comments |
-| Capsule Details | ✅ Working | Full details view with location, unlock status, sharing, comments |
-| **Home Hub: Dynamic Greeting + Context Subtitle** | 🚧 In Progress | Time-of-day greeting with user context is being refined |
-| **Home Hub: Interactive Stats Grid** | 🚧 In Progress | 4-card clickable grid (Total/Locked/Unlocked/Shared) wired to filtered navigation |
-| **Home Hub: Recent Memories Section** | 🚧 In Progress | RecyclerView of latest 2-3 capsules with quick-open details |
-| **Home Hub: Nearby Memory Card** | 🚧 In Progress | Conditional card shown when user is within 100m of a capsule |
-| **Home Hub: Empty State Handling** | 🚧 In Progress | Friendly first-use state with stats/recent sections hidden when empty |
-| Dark Mode | ✅ Working | Full Material 3 light + dark theme |
-| Design System | ✅ Working | Centralized theme attrs, no hardcoded colors |
+## App Flow
+
+`SplashActivity` -> `OnboardingActivity` -> `AuthActivity` (`LoginFragment` / `SignupFragment`) -> `MainActivity` (Bottom Nav)
+
+Bottom navigation pages:
+- `HomeFragment`
+- `CapsulesFragment`
+- `MapFragment`
+- `NotificationsFragment`
+- `ProfileFragment`
 
 ---
 
-## 📱 Screens
+## Page: Splash
 
-```
-SplashActivity → OnboardingActivity → AuthActivity
-                                        ├── LoginFragment
-                                        └── SignupFragment
+### Task: Route user to the correct entry point
+- Status: `WORKING`
+- Functions/classes:
+  - `SplashActivity.navigateNext()`
+  - Checks first-launch via `PreferencesManager.isFirstLaunch()`
+  - Checks auth via `AuthRepository.isUserLoggedIn()`
+  - Routes to onboarding, auth, or main app accordingly.
 
-MainActivity (Bottom Navigation — 5 tabs)
-├── HomeFragment        — Dynamic memory hub (personalized greeting, daily quote, interactive stats, recent memories, contextual nearby-memory prompt, create CTA)
-├── CapsulesFragment    — Capsule list with chip filters (All / Locked / Unlocked / Shared)
-│   ├── CreateCapsuleActivity (auto GPS capture)
-│   └── CapsuleDetailsActivity (details, sharing, comments, make-private)
-├── MapFragment         — OSMDroid map with capsule markers
-├── NotificationsFragment — Unlock & sharing events
-└── ProfileFragment     — Account management & logout
-```
+## Page: Onboarding
 
----
+### Task: Show first-time introduction slides
+- Status: `WORKING`
+- Functions/classes:
+  - `OnboardingActivity.onCreate()` sets ViewPager pages and dots.
+  - `OnboardingActivity.updateButtons()` toggles Next/Get Started and Skip visibility.
+  - `OnboardingActivity.finishOnboarding()` sets first-launch false and opens auth.
 
-## ✨ Latest Enhancements
+## Page: Authentication
 
-- Home dashboard upgrade is underway to make the experience more contextual and memory-focused.
-- Interactive stat cards are being aligned with filtered navigation into `CapsulesFragment`.
-- "Recent Memories" list and conditional "You're near a memory" card are being integrated with ViewModel-driven data.
-- Empty-state UX is being polished for first-time users with no capsules.
+### Task: Login with validation
+- Status: `WORKING`
+- Functions/classes:
+  - `LoginFragment.setupUI()` and `LoginFragment.handleLoginState()`
+  - `LoginViewModel.login()` with email/password validation and repository auth call.
 
----
+### Task: Signup with validation
+- Status: `WORKING`
+- Functions/classes:
+  - `SignupFragment.setupUI()` and `SignupFragment.handleSignupState()`
+  - `SignupViewModel.signup()` with name/email/password checks and registration flow.
 
-## 🏆 Key Features
-
-### 🔐 Authentication
-- Email/password sign-up and login via Firebase Auth
-- Persistent sessions; logout clears local state
-
-### 📦 Capsule Management
-- Create capsules with title, message, and image (Base64, auto-compressed)
-- **GPS location automatically captured** on capsule creation
-- Set a future unlock date (time-based)
-- Enable location-based unlock (within 100m of capsule GPS coordinate)
-- Filter: All / Locked / Unlocked / Shared
-- View detailed capsule info including coordinates, unlock conditions
-
-### 🤝 Sharing & Collaboration
-- **Share capsules** by entering a user's email address
-- **View shared-with list** — see who has access to your capsule
-- **Remove individual shares** — revoke access per user
-- **Make Private** — one-tap button to revoke all shares and disable sharing
-- **Comments** — leave comments on shared capsules; delete your own comments
-- Comments visible to capsule owner and all shared users
-- Comment input bar appears only when capsule is shared
-
-### 🗺️ Map (OSMDroid / OpenStreetMap)
-- OpenStreetMap tiles via OSMDroid (no Google Maps dependency)
-- Capsule markers placed at real GPS coordinates
-- User's current location overlay
-- Marker tap → bottom sheet capsule preview
-- Capsules at (0,0) are filtered out (invalid coordinates)
-- Map reloads data on resume (picks up newly created capsules)
-
-### 🔔 Notifications
-- Local notifications when a capsule unlocks (time or location)
-- Notification channels with customizable sound & vibration
-- In-app notification list with read/delete/clear
-
-### 🌍 Background Services
-- `TimeBasedUnlockWorker` — runs every 15 min via WorkManager
-- `LocationBasedUnlockWorker` — runs every 30 min via WorkManager
-- `ForegroundLocationService` — optional continuous GPS tracking
-- `WorkScheduler` — initialized in `ChronoVaultApplication.onCreate()`
+### Task: Enter main app after auth
+- Status: `WORKING`
+- Functions/classes:
+  - `AuthActivity.navigateToMainApp()`
+  - `AuthActivity.onCreate()` auto-skips auth if already logged in.
 
 ---
 
-## 🗄️ Database Schema
+## Page: Home (Dashboard)
 
-### CapsuleEntity (Room)
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | String (PK) | UUID |
-| `title` | String | Capsule title |
-| `message` | String | Capsule message body |
-| `imageBase64` | String? | Compressed Base64 image |
-| `latitude` / `longitude` | Double | GPS coordinates |
-| `unlockTime` | Long? | Time-based unlock timestamp |
-| `unlockLatitude` / `unlockLongitude` | Double? | Location-based unlock coords |
-| `isUnlocked` | Boolean | Whether capsule is open |
-| `isTimeBased` / `isLocationBased` | Boolean | Unlock method flags |
-| `ownerId` | String | Firebase Auth UID |
-| `sharedWith` | List\<String\> | Shared user emails |
-| `canBeShared` | Boolean | Sharing enabled flag |
+### Task: Dynamic greeting + subtitle
+- Status: `WORKING`
+- Functions/classes:
+  - `HomeViewModel.getGreeting()` for morning/afternoon/evening.
+  - `HomeViewModel.greetingSubtitle` and `HomeFragment.observeViewModel()` binding.
 
-### CommentEntity (Room)
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | String (PK) | UUID |
-| `capsuleId` | String | Parent capsule ID |
-| `authorId` | String | Firebase Auth UID |
-| `authorName` | String | Display name of commenter |
-| `text` | String | Comment body |
-| `createdAt` | Long | Timestamp |
+### Task: Quote card with refresh
+- Status: `WORKING`
+- Functions/classes:
+  - `HomeViewModel.refreshQuote()` calls quote API and updates `dailyQuote`.
+  - `HomeFragment.setupUI()` -> `btnRefreshQuote` triggers refresh.
 
----
+### Task: Summary cards (Total/Locked/Unlocked/Shared) with click actions
+- Status: `WORKING`
+- Functions/classes:
+  - `HomeFragment.setupUI()` card click listeners.
+  - `HomeFragment.navigateToCapsules()` sends filter request via fragment result and selects capsules tab.
+  - `HomeViewModel` exposes counts through LiveData.
 
-## 🎨 Design System
+### Task: Recent memories list
+- Status: `WORKING`
+- Functions/classes:
+  - `HomeViewModel.recentCapsules` (top 3 sorted by create date).
+  - `RecentCapsulesAdapter` (lightweight delegate click only).
+  - `HomeFragment.handleMemoryClick()` routes unlocked memories to center tab details flow.
 
-| Token | Light | Dark |
-|-------|-------|------|
-| Primary | `#2f6f5e` Metallic Green | `#4c8c7a` |
-| Secondary | `#d6a75f` Soft Ochre | `#e8c896` |
-| Background | `#f4f7f5` | `#0f172a` |
-| Surface | `#ffffff` | `#111827` |
-| Error | `#ef4444` | `#f87171` |
-| Font | Roboto | Roboto |
-| Card radius | 12dp | 12dp |
-| Button radius | 24dp | 24dp |
+### Task: Nearby memory card
+- Status: `WORKING`
+- Functions/classes:
+  - `HomeViewModel.updateNearbyCapsule()` computes nearest capsule within 100m.
+  - `HomeFragment.shouldOpenNearbyDetails()` picks button behavior:
+    - unlocked/effectively unlocked/no lock conditions -> view details flow
+    - locked -> go to map focus
+  - `HomeFragment.startNearbyCountdown()` shows per-second countdown for nearby time-locked capsule.
 
-All layouts use `?attr/` theme attributes — zero hardcoded colors.
+### Task: Empty state
+- Status: `WORKING`
+- Functions/classes:
+  - `HomeFragment.observeViewModel()` toggles empty state and hides stats/recent when no capsules.
 
----
-
-## 📂 Documentation
-
-| File | Contents |
-|------|----------|
-| `README.md` | This file — overview, features, status |
-| `SETUP.md` | Firebase & build instructions |
-| `ARCHITECTURE.md` | Code structure, MVVM patterns, data flow |
-| `FEATURES.md` | Detailed feature implementation status |
-| `API_REFERENCE.md` | Key classes, ViewModels, repositories |
-| `DEPLOYMENT.md` | Pre-release checklist & known issues |
+### Task: Create CTA
+- Status: `WORKING`
+- Functions/classes:
+  - `HomeFragment.setupUI()` -> opens `CreateCapsuleActivity`.
 
 ---
 
-*Last updated: March 17, 2026*
+## Page: Capsules (Center Tab)
+
+### Task: Filter memory list by status
+- Status: `WORKING`
+- Functions/classes:
+  - `CapsulesFragment.applyFilter()` and chip handlers.
+  - `CapsulesViewModel.setFilter()` and `loadCapsules()`.
+
+### Task: Open memory details safely
+- Status: `WORKING`
+- Functions/classes:
+  - `CapsulesAdapter` delegates click only.
+  - `CapsulesFragment.onCapsuleClick()` is single click gate.
+  - `CapsulesFragment.navigateToDetails()` uses Nav action `action_capsulesFragment_to_capsuleDetailsActivity` with `capsule_id`.
+
+### Task: Locked memory feedback
+- Status: `WORKING`
+- Functions/classes:
+  - `CapsulesViewModel.canOpenCapsule()` and `getLockedMessage()`.
+  - `CapsulesFragment.showLockedMessage()` shows one lock dialog path.
+
+### Task: Create memory from capsules page
+- Status: `WORKING`
+- Functions/classes:
+  - `CapsulesFragment` FAB -> `CreateCapsuleActivity`.
+
+---
+
+## Page: Create Capsule
+
+### Task: Capture location + set lock conditions + save capsule
+- Status: `WORKING`
+- Functions/classes:
+  - `CreateCapsuleActivity.requestLocationAndCapture()` permission flow.
+  - `CreateCapsuleActivity.captureCurrentLocation()` captures fresh/last known location.
+  - `CapsulesViewModel.createCapsule()` validates fields and inserts into Room/repository.
+
+### Task: Image attach and compression
+- Status: `WORKING`
+- Functions/classes:
+  - `CreateCapsuleActivity` image picker.
+  - `CapsulesViewModel.setImageFromUri()` with compression via `ImageConverter`.
+
+---
+
+## Page: Capsule Details
+
+### Task: Enforce lock gate before showing full content
+- Status: `WORKING`
+- Functions/classes:
+  - `CapsuleDetailsActivity.applyLockGate()`
+  - Priority order implemented:
+    - time lock first
+    - location lock second
+    - otherwise unlocked
+
+### Task: Locked state UI
+- Status: `WORKING`
+- Functions/classes:
+  - `CapsuleDetailsActivity.showTimeLockedState()` + `startCountdown()`
+  - `CapsuleDetailsActivity.showLocationLockedState()` with distance text.
+  - Details countdown currently displays days/hours/minutes.
+
+### Task: Unlocked state content
+- Status: `WORKING`
+- Functions/classes:
+  - `CapsuleDetailsActivity.showUnlockedState()` shows message/image/location/sharing/comments.
+
+### Task: Sharing + comments
+- Status: `WORKING`
+- Functions/classes:
+  - `CapsuleDetailsViewModel.shareCapsule()`, `unshareCapsule()`, `makeCapsulePrivate()`
+  - `CapsuleDetailsViewModel.addComment()` and `deleteComment()`
+
+---
+
+## Page: Map
+
+### Task: Show all capsules on map (locked + unlocked)
+- Status: `WORKING`
+- Functions/classes:
+  - `MapViewModel.allCapsules` observed by `MapFragment.observeViewModel()`.
+  - `MapFragment.updateMapMarkers()` clears overlays and redraws markers from Room data.
+
+### Task: Correct marker coordinates and focus
+- Status: `WORKING`
+- Functions/classes:
+  - `GeoPoint(capsule.latitude, capsule.longitude)` used.
+  - `MapFragment.centerOnPoint()` sets zoom/center.
+  - `MapFragment.ARG_FOCUS_CAPSULE_ID` supports deep-link focus from nearby CTA.
+
+### Task: Marker color rules and precedence
+- Status: `WORKING`
+- Functions/classes:
+  - `MapFragment.getMarkerIcon()` tints one marker drawable by state.
+  - Current precedence prioritizes user-owned markers before shared markers.
+
+### Task: Multiple memories at one coordinate
+- Status: `WORKING`
+- Functions/classes:
+  - `MapFragment.handleMarkerSelection()` opens chooser dialog.
+  - Selected item opens details screen.
+
+### Task: Marker preview bottom sheet
+- Status: `WORKING`
+- Functions/classes:
+  - `CapsulePreviewBottomSheet` loads capsule asynchronously (no `runBlocking`).
+  - Uses lifecycle-aware coroutine; cancellation handled safely.
+
+---
+
+## Page: Notifications
+
+### Task: Show in-app notification list (read/delete/clear)
+- Status: `WORKING`
+- Functions/classes:
+  - `NotificationsFragment` list + clear actions.
+  - `NotificationsViewModel.markAsRead()`, `deleteNotification()`, `clearAllNotifications()`.
+
+### Task: Pull real notification feed from backend
+- Status: `PARTIAL`
+- Functions/classes:
+  - `NotificationsViewModel.loadNotifications()` currently uses mock list in code.
+  - Read state writes to preferences, but source data is not yet backend-driven.
+
+---
+
+## Page: Profile
+
+### Task: View/update profile and avatar
+- Status: `WORKING`
+- Functions/classes:
+  - `ProfileViewModel.loadUserProfile()`, `updateName()`, `updateAvatar()`.
+  - `ProfileFragment` binds profile state and image picker.
+
+### Task: Logout and delete account
+- Status: `WORKING`
+- Functions/classes:
+  - `ProfileViewModel.logout()`, `deleteAccount()`.
+  - `ProfileFragment.handleAccountState()` delegates app exit to `MainActivity.logout()`.
+
+---
+
+## Cross-Cutting Tasks
+
+### Task: Bottom nav feedback + selection animation
+- Status: `WORKING`
+- Functions/classes:
+  - `MainActivity.animateBottomNavSelection()`.
+  - `setupWithNavController` + item selected/reselected listeners.
+
+### Task: Location permission flow
+- Status: `WORKING`
+- Functions/classes:
+  - `MainActivity.ensureLocationPermissionFlow()` (first ask, rationale, settings for permanent deny).
+  - Page-level handling in `MapFragment` and `CreateCapsuleActivity`.
+
+### Task: Time unlock persistence after unlock date passes
+- Status: `WORKING`
+- Functions/classes:
+  - `persistExpiredTimeUnlocks()` is used in `HomeViewModel`, `CapsulesViewModel`, `MapViewModel`, `CapsuleDetailsViewModel`.
+  - Ensures expired time-locked memories stay unlocked.
+
+### Task: Background unlock workers
+- Status: `WORKING`
+- Functions/classes:
+  - `TimeBasedUnlockWorker`
+  - `LocationBasedUnlockWorker`
+  - `WorkScheduler`
+
+---
+
+## Partially Done / Open Items
+
+- `PARTIAL`: Notifications backend integration is still mocked in `NotificationsViewModel.loadNotifications()`.
+- `PARTIAL`: Some UI text in `CapsulePreviewBottomSheet.kt` still uses hardcoded strings and should be moved to string resources.
+- `PARTIAL`: Memory details open through `CapsuleDetailsActivity` destination (not yet converted to a dedicated detail Fragment page).
+
+---
+
+## Key Docs
+
+- `SETUP.md`
+- `ARCHITECTURE.md`
+- `FEATURES.md`
+- `API_REFERENCE.md`
+- `DEPLOYMENT.md`
+
+---
+
+Last updated: March 23, 2026
