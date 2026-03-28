@@ -36,6 +36,25 @@
     <color name="border">#334155</color>
     <color name="divider">#1e293b</color>
 
+    <!-- Appearance palettes -->
+    <color name="scheme_blue_primary">#7FA7F2</color>
+    <color name="scheme_blue_primary_container">#20365E</color>
+    <color name="scheme_blue_secondary">#8DB6FF</color>
+    <color name="scheme_blue_secondary_container">#1F3B67</color>
+    <color name="scheme_blue_accent">#9ABFFF</color>
+
+    <color name="scheme_ochre_primary">#D3A56A</color>
+    <color name="scheme_ochre_primary_container">#4B3318</color>
+    <color name="scheme_ochre_secondary">#E1B57A</color>
+    <color name="scheme_ochre_secondary_container">#5A3D1D</color>
+    <color name="scheme_ochre_accent">#EABF8A</color>
+
+    <color name="scheme_gray_primary">#B3BAC4</color>
+    <color name="scheme_gray_primary_container">#2A3038</color>
+    <color name="scheme_gray_secondary">#C3CAD3</color>
+    <color name="scheme_gray_secondary_container">#343A43</color>
+    <color name="scheme_gray_accent">#D0D5DD</color>
+
     <!-- Splash / On-dark overlays -->
     <color name="splash_text_faded">#B0FFFFFF</color>
 

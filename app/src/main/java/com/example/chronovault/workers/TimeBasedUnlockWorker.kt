@@ -20,6 +20,7 @@ class TimeBasedUnlockWorker(
         return try {
             val capsuleRepository = ServiceLocator.provideCapsuleRepository(applicationContext)
             val preferencesManager = ServiceLocator.providePreferencesManager(applicationContext)
+            val notificationRepository = ServiceLocator.provideNotificationRepository(applicationContext)
             val userId = preferencesManager.getUserId() ?: return Result.retry()
 
             // Check for time-based unlocks
@@ -34,6 +35,12 @@ class TimeBasedUnlockWorker(
                     applicationContext,
                     capsule.title,
                     "Your capsule \"${capsule.title}\" has been unlocked!"
+                )
+
+                notificationRepository.createUnlockNotification(
+                    capsuleId = capsule.id,
+                    capsuleTitle = capsule.title,
+                    source = "time"
                 )
             }
 

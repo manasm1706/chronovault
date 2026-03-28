@@ -10,6 +10,7 @@ import com.example.chronovault.R
 import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.ui.auth.AuthActivity
 import com.example.chronovault.ui.onboarding.OnboardingActivity
+import com.example.chronovault.utils.ThemeManager
 
 /**
  * SplashActivity - Gradient background, app logo, tagline
@@ -18,6 +19,12 @@ import com.example.chronovault.ui.onboarding.OnboardingActivity
 class SplashActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val appearancePrefs = ServiceLocator.providePreferencesManager(this)
+        ThemeManager.applyTheme(
+            activity = this,
+            modeValue = appearancePrefs.getSelectedThemeMode(),
+            schemeValue = appearancePrefs.getSelectedColorScheme()
+        )
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
         supportActionBar?.hide()

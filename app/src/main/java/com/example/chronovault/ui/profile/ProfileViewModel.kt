@@ -8,11 +8,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.chronovault.data.ServiceLocator
+import com.example.chronovault.data.local.entity.FriendEntity
 import com.example.chronovault.data.repository.AuthRepository
+import com.example.chronovault.data.repository.FriendRepository
 import com.example.chronovault.data.repository.UserRepository
 import com.example.chronovault.ui.common.LoadingState
 import com.example.chronovault.utils.ImageConverter
 import com.example.chronovault.utils.PreferencesManager
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
@@ -23,6 +26,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     private val authRepository: AuthRepository = ServiceLocator.provideAuthRepository(application)
     private val userRepository: UserRepository = ServiceLocator.provideUserRepository(application)
+    private val friendRepository: FriendRepository = ServiceLocator.provideFriendRepository(application)
     private val preferencesManager: PreferencesManager = ServiceLocator.providePreferencesManager(application)
 
     // UI State
@@ -34,6 +38,15 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     private val _userAvatar = MutableLiveData<String?>()
     val userAvatar: LiveData<String?> = _userAvatar
+
+    private val _userId = MutableLiveData<String>()
+    val userId: LiveData<String> = _userId
+
+    private val _friends = MutableLiveData<List<FriendEntity>>(emptyList())
+    val friends: LiveData<List<FriendEntity>> = _friends
+
+    private val _friendRequests = MutableLiveData<List<FriendRepository.FriendRequest>>(emptyList())
+    val friendRequests: LiveData<List<FriendRepository.FriendRequest>> = _friendRequests
 
     private val _totalCapsules = MutableLiveData<Int>(0)
     val totalCapsules: LiveData<Int> = _totalCapsules
@@ -49,6 +62,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     init {
         loadUserProfile()
+        observeFriends()
+        observeFriendRequests()
     }
 
     fun loadUserProfile() {
@@ -58,6 +73,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 _userName.value = preferencesManager.getUserName() ?: "User"
                 _userEmail.value = preferencesManager.getUserEmail() ?: ""
                 _userAvatar.value = preferencesManager.getUserAvatar()
+                _userId.value = userRepository.getUserId().orEmpty()
 
                 // Fetch from Firebase for updated data
                 userRepository.getUserProfile().onSuccess { profileData ->
@@ -143,6 +159,95 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun resetAccountState() {
         _accountState.value = AccountState.Idle
+    }
+
+    fun getNotificationSoundEnabled(): Boolean = preferencesManager.getNotificationSound()
+
+    fun setNotificationSoundEnabled(enabled: Boolean) {
+        preferencesManager.setNotificationSound(enabled)
+    }
+
+    fun getNotificationVibrationEnabled(): Boolean = preferencesManager.getNotificationVibration()
+
+    fun setNotificationVibrationEnabled(enabled: Boolean) {
+        preferencesManager.setNotificationVibration(enabled)
+    }
+
+    fun getSelectedThemeMode(): String = preferencesManager.getSelectedThemeMode()
+
+    fun setSelectedThemeMode(mode: String) {
+        preferencesManager.setSelectedThemeMode(mode)
+    }
+
+    fun getSelectedColorScheme(): String = preferencesManager.getSelectedColorScheme()
+
+    fun setSelectedColorScheme(scheme: String) {
+        preferencesManager.setSelectedColorScheme(scheme)
+    }
+
+    private fun observeFriends() {
+        viewModelScope.launch {
+            friendRepository.observeFriends().collectLatest { friendList ->
+                _friends.value = friendList
+            }
+        }
+    }
+
+    fun sendFriendRequest(friendUserId: String) {
+        viewModelScope.launch {
+            _accountState.value = AccountState.Loading
+            friendRepository.sendFriendRequest(friendUserId.trim())
+                .onSuccess {
+                    _accountState.value = AccountState.Success("Friend request sent")
+                }
+                .onFailure { error ->
+                    _accountState.value = AccountState.Error(error.message ?: "Failed to send request")
+                }
+        }
+    }
+
+    fun acceptFriend(friendUserId: String) {
+        viewModelScope.launch {
+            friendRepository.acceptFriend(friendUserId)
+                .onSuccess {
+                    _accountState.value = AccountState.Success("Friend request accepted")
+                }
+                .onFailure { error ->
+                    _accountState.value = AccountState.Error(error.message ?: "Failed to accept friend")
+                }
+        }
+    }
+
+    fun acceptFriendRequest(request: FriendRepository.FriendRequest) {
+        viewModelScope.launch {
+            friendRepository.acceptFriendRequest(request.requestId, request.fromUserId)
+                .onSuccess {
+                    _accountState.value = AccountState.Success("Friend request accepted")
+                }
+                .onFailure { error ->
+                    _accountState.value = AccountState.Error(error.message ?: "Failed to accept request")
+                }
+        }
+    }
+
+    fun rejectFriendRequest(request: FriendRepository.FriendRequest) {
+        viewModelScope.launch {
+            friendRepository.rejectFriendRequest(request.requestId)
+                .onSuccess {
+                    _accountState.value = AccountState.Success("Friend request rejected")
+                }
+                .onFailure { error ->
+                    _accountState.value = AccountState.Error(error.message ?: "Failed to reject request")
+                }
+        }
+    }
+
+    private fun observeFriendRequests() {
+        viewModelScope.launch {
+            friendRepository.observeIncomingRequests().collectLatest { requests ->
+                _friendRequests.value = requests
+            }
+        }
     }
 }
 

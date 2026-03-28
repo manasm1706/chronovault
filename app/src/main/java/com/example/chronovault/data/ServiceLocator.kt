@@ -7,11 +7,16 @@ import com.example.chronovault.data.remote.firebase.FirebaseAuthService
 import com.example.chronovault.data.remote.firebase.FirestoreCapsuleService
 import com.example.chronovault.data.remote.firebase.FirebaseUserService
 import com.example.chronovault.data.remote.firebase.FirebaseSharingService
+import com.example.chronovault.data.remote.firebase.FirebaseFriendService
+import com.example.chronovault.data.remote.firebase.FirebaseChatService
 import com.example.chronovault.data.local.CommentDao
 import com.example.chronovault.data.repository.AuthRepository
 import com.example.chronovault.data.repository.CapsuleRepository
+import com.example.chronovault.data.repository.ChatRepository
+import com.example.chronovault.data.repository.FriendRepository
 import com.example.chronovault.data.repository.UserRepository
 import com.example.chronovault.data.repository.SharingRepository
+import com.example.chronovault.data.repository.NotificationRepository
 import com.example.chronovault.utils.PreferencesManager
 
 /**
@@ -25,11 +30,16 @@ object ServiceLocator {
     private var authRepository: AuthRepository? = null
     private var userRepository: UserRepository? = null
     private var sharingRepository: SharingRepository? = null
+    private var notificationRepository: NotificationRepository? = null
+    private var friendRepository: FriendRepository? = null
+    private var chatRepository: ChatRepository? = null
     private var preferencesManager: PreferencesManager? = null
     private var firebaseAuthService: FirebaseAuthService? = null
     private var firestoreCapsuleService: FirestoreCapsuleService? = null
     private var firebaseUserService: FirebaseUserService? = null
     private var firebaseSharingService: FirebaseSharingService? = null
+    private var firebaseFriendService: FirebaseFriendService? = null
+    private var firebaseChatService: FirebaseChatService? = null
 
     @Volatile
     private var dbLock = Any()
@@ -40,7 +50,13 @@ object ServiceLocator {
                 context.applicationContext,
                 ChronoVaultDatabase::class.java,
                 ChronoVaultDatabase.DATABASE_NAME
-            ).fallbackToDestructiveMigration().build()
+            )
+                .addMigrations(
+                    ChronoVaultDatabase.MIGRATION_3_4,
+                    ChronoVaultDatabase.MIGRATION_4_5,
+                    ChronoVaultDatabase.MIGRATION_5_6
+                )
+                .build()
             database = instance
             instance
         }
@@ -82,6 +98,22 @@ object ServiceLocator {
         return firebaseSharingService ?: synchronized(dbLock) {
             val instance = FirebaseSharingService()
             firebaseSharingService = instance
+            instance
+        }
+    }
+
+    fun provideFirebaseFriendService(): FirebaseFriendService {
+        return firebaseFriendService ?: synchronized(dbLock) {
+            val instance = FirebaseFriendService()
+            firebaseFriendService = instance
+            instance
+        }
+    }
+
+    fun provideFirebaseChatService(): FirebaseChatService {
+        return firebaseChatService ?: synchronized(dbLock) {
+            val instance = FirebaseChatService()
+            firebaseChatService = instance
             instance
         }
     }
@@ -131,18 +163,55 @@ object ServiceLocator {
         return provideDatabase(context).commentDao()
     }
 
+    fun provideFriendRepository(context: Context): FriendRepository {
+        return friendRepository ?: synchronized(dbLock) {
+            val db = provideDatabase(context)
+            val firebaseFriend = provideFirebaseFriendService()
+            val prefs = providePreferencesManager(context)
+            val repo = FriendRepository(db.friendDao(), firebaseFriend, prefs)
+            friendRepository = repo
+            repo
+        }
+    }
+
+    fun provideNotificationRepository(context: Context): NotificationRepository {
+        return notificationRepository ?: synchronized(dbLock) {
+            val repo = NotificationRepository(provideDatabase(context).notificationDao())
+            notificationRepository = repo
+            repo
+        }
+    }
+
+    fun provideChatRepository(context: Context): ChatRepository {
+        return chatRepository ?: synchronized(dbLock) {
+            val prefs = providePreferencesManager(context)
+            val repo = ChatRepository(
+                firebaseChatService = provideFirebaseChatService(),
+                firebaseFriendService = provideFirebaseFriendService(),
+                preferencesManager = prefs
+            )
+            chatRepository = repo
+            repo
+        }
+    }
+
     fun resetRepositories() {
         synchronized(dbLock) {
             capsuleRepository = null
             authRepository = null
             userRepository = null
             sharingRepository = null
+            notificationRepository = null
+            friendRepository = null
+            chatRepository = null
             database = null
             preferencesManager = null
             firebaseAuthService = null
             firestoreCapsuleService = null
             firebaseUserService = null
             firebaseSharingService = null
+            firebaseFriendService = null
+            firebaseChatService = null
         }
     }
 }

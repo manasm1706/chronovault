@@ -8,6 +8,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.databinding.ActivityOnboardingBinding
 import com.example.chronovault.ui.auth.AuthActivity
+import com.example.chronovault.utils.ThemeManager
 import com.google.android.material.tabs.TabLayoutMediator
 
 /**
@@ -19,6 +20,12 @@ class OnboardingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityOnboardingBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val appearancePrefs = ServiceLocator.providePreferencesManager(this)
+        ThemeManager.applyTheme(
+            activity = this,
+            modeValue = appearancePrefs.getSelectedThemeMode(),
+            schemeValue = appearancePrefs.getSelectedColorScheme()
+        )
         super.onCreate(savedInstanceState)
         binding = ActivityOnboardingBinding.inflate(layoutInflater)
         setContentView(binding.root)

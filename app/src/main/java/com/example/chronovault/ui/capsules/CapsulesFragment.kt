@@ -7,15 +7,23 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.example.chronovault.R
 import com.example.chronovault.databinding.FragmentCapsulesBinding
 import com.example.chronovault.ui.home.HomeFragment
+import com.example.chronovault.ui.map.MapFragment
 import com.example.chronovault.ui.common.LoadingState
+import com.example.chronovault.utils.LocationHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * CapsulesFragment - Display user's capsules with filtering
@@ -122,7 +130,10 @@ class CapsulesFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = CapsulesAdapter { capsule -> onCapsuleClick(capsule) }
+        adapter = CapsulesAdapter(
+            onCapsuleClick = { capsule -> onCapsuleClick(capsule) },
+            onMapClueClick = { capsule -> onMapClueClick(capsule) }
+        )
 
         binding.rvCapsules.apply {
             layoutManager = LinearLayoutManager(context)
@@ -138,6 +149,22 @@ class CapsulesFragment : Fragment() {
         } else {
             showLockedMessage(capsule)
         }
+    }
+
+    private fun onMapClueClick(capsule: com.example.chronovault.data.local.entity.CapsuleEntity) {
+        if (!isAdded || !capsule.isLocationBased || capsule.isUnlocked) return
+
+        parentFragmentManager.setFragmentResult(
+            MapFragment.MAP_CLUE_REQUEST,
+            bundleOf(
+                MapFragment.KEY_CLUE_CAPSULE_ID to capsule.id,
+                MapFragment.KEY_CLUE_LATITUDE to capsule.latitude,
+                MapFragment.KEY_CLUE_LONGITUDE to capsule.longitude,
+                MapFragment.KEY_CLUE_TITLE to capsule.title
+            )
+        )
+
+        activity?.findViewById<BottomNavigationView>(R.id.nav_view)?.selectedItemId = R.id.navigation_map
     }
 
     private fun navigateToDetails(id: String) {
@@ -170,10 +197,26 @@ class CapsulesFragment : Fragment() {
     }
 
     private fun showLockedMessage(capsule: com.example.chronovault.data.local.entity.CapsuleEntity) {
-        // FIX: 4
+        val base = viewModel.getLockedMessage(capsule)
+        if (capsule.isLocationBased && !capsule.isUnlocked) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val locality = withContext(Dispatchers.IO) {
+                    LocationHelper.getLocalityHint(requireContext(), capsule.latitude, capsule.longitude)
+                }
+                val clue = locality?.let { getString(R.string.location_somewhere_in, it) }
+                    ?: getString(R.string.location_unknown)
+                AlertDialog.Builder(requireContext())
+                    .setTitle(getString(R.string.status_locked))
+                    .setMessage("$base\n\n$clue")
+                    .setPositiveButton(R.string.dismiss, null)
+                    .show()
+            }
+            return
+        }
+
         AlertDialog.Builder(requireContext())
             .setTitle(getString(R.string.status_locked))
-            .setMessage(viewModel.getLockedMessage(capsule))
+            .setMessage(base)
             .setPositiveButton(R.string.dismiss, null)
             .show()
     }

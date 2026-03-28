@@ -2,9 +2,13 @@ package com.example.chronovault.ui.capsules
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.util.Log
 import android.view.View
 import android.widget.EditText
@@ -15,10 +19,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.chronovault.R
+import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.databinding.ActivityCapsuleDetailsBinding
 import com.example.chronovault.ui.common.LoadingState
+import com.example.chronovault.utils.CountdownFormatter
+import com.example.chronovault.utils.GooglePlayServicesGuard
 import com.example.chronovault.utils.ImageConverter
 import com.example.chronovault.utils.LocationHelper
+import com.example.chronovault.utils.ThemeManager
 import com.google.android.gms.location.LocationServices
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -40,11 +48,20 @@ class CapsuleDetailsActivity : AppCompatActivity() {
     private var countdownRunnable: Runnable? = null
     private var lastKnownUserLocation: Pair<Double, Double>? = null
     private var isCurrentlyLockedByGate: Boolean = false
+    private var wasUnlockedByGatePreviously: Boolean? = null
+    private var unlockTransitionPlayed: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val appearancePrefs = ServiceLocator.providePreferencesManager(this)
+        ThemeManager.applyTheme(
+            activity = this,
+            modeValue = appearancePrefs.getSelectedThemeMode(),
+            schemeValue = appearancePrefs.getSelectedColorScheme()
+        )
         super.onCreate(savedInstanceState)
         binding = ActivityCapsuleDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        unlockTransitionPlayed = savedInstanceState?.getBoolean(KEY_UNLOCK_TRANSITION_PLAYED, false) ?: false
 
         // FIX: unlocked-memory-crash
         capsuleId = resolveCapsuleIdFromIntent()
@@ -145,9 +162,12 @@ class CapsuleDetailsActivity : AppCompatActivity() {
             val isOwner = viewModel.isOwner.value == true
             // FIX: 3
             binding.btnMakePrivate.visibility = if (isShared && isOwner && !isCurrentlyLockedByGate) View.VISIBLE else View.GONE
-            // Show comment input for shared capsules (both owner and shared users can comment)
-            binding.commentInputLayout.visibility = if (isShared && !isCurrentlyLockedByGate) View.VISIBLE else View.GONE
-            binding.layoutComments.visibility = if (isShared && !isCurrentlyLockedByGate) View.VISIBLE else View.GONE
+        }
+
+        viewModel.canComment.observe(this@CapsuleDetailsActivity) { canComment ->
+            val showComments = canComment && !isCurrentlyLockedByGate
+            binding.commentInputLayout.visibility = if (showComments) View.VISIBLE else View.GONE
+            binding.layoutComments.visibility = if (showComments) View.VISIBLE else View.GONE
         }
 
         viewModel.unlockReason.observe(this@CapsuleDetailsActivity) { reason ->
@@ -270,6 +290,8 @@ class CapsuleDetailsActivity : AppCompatActivity() {
 
     // FIX: 3
     private fun showUnlockedState(capsule: com.example.chronovault.data.local.entity.CapsuleEntity) {
+        val transitionedFromLocked = wasUnlockedByGatePreviously == false && !unlockTransitionPlayed
+        wasUnlockedByGatePreviously = true
         isCurrentlyLockedByGate = false
         stopCountdown()
         binding.apply {
@@ -281,16 +303,22 @@ class CapsuleDetailsActivity : AppCompatActivity() {
             ivCapsuleImage.visibility = View.VISIBLE
             tvLocation.visibility = View.VISIBLE
             layoutSharedWith.visibility = if (viewModel.isOwner.value == true) View.VISIBLE else View.GONE
-            layoutComments.visibility = if (viewModel.isSharedCapsule.value == true) View.VISIBLE else View.GONE
-            commentInputLayout.visibility = if (viewModel.isSharedCapsule.value == true) View.VISIBLE else View.GONE
+            val showComments = viewModel.canComment.value == true
+            layoutComments.visibility = if (showComments) View.VISIBLE else View.GONE
+            commentInputLayout.visibility = if (showComments) View.VISIBLE else View.GONE
             btnShare.visibility = if (viewModel.isOwner.value == true) View.VISIBLE else View.GONE
             btnMakePrivate.visibility = if (viewModel.isOwner.value == true && viewModel.isSharedCapsule.value == true) View.VISIBLE else View.GONE
             tvUnlockReason.text = getString(R.string.status_unlocked)
+        }
+
+        if (transitionedFromLocked) {
+            runUnlockTransitionAnimationOnce()
         }
     }
 
     // FIX: 3
     private fun showTimeLockedState(capsule: com.example.chronovault.data.local.entity.CapsuleEntity, unlockTime: Long) {
+        wasUnlockedByGatePreviously = false
         hideLockedContent()
         binding.tvTitle.text = capsule.title
         binding.tvDate.text = getString(R.string.label_created) + ": " + formatDate(capsule.createdAt)
@@ -299,6 +327,7 @@ class CapsuleDetailsActivity : AppCompatActivity() {
 
     // FIX: 3
     private fun showLocationLockedState(capsule: com.example.chronovault.data.local.entity.CapsuleEntity, distance: Float?) {
+        wasUnlockedByGatePreviously = false
         stopCountdown()
         hideLockedContent()
         binding.tvTitle.text = capsule.title
@@ -324,6 +353,43 @@ class CapsuleDetailsActivity : AppCompatActivity() {
         }
     }
 
+    private fun runUnlockTransitionAnimationOnce() {
+        unlockTransitionPlayed = true
+        val revealViews = listOf(binding.tvMessageCard, binding.ivCapsuleImage, binding.tvMessage)
+        revealViews.forEach { view ->
+            view.alpha = 0f
+            view.scaleX = 0.95f
+            view.scaleY = 0.95f
+            view.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .alpha(1f)
+                .setDuration(300L)
+                .start()
+        }
+        vibrateUnlockFeedback()
+    }
+
+    private fun vibrateUnlockFeedback() {
+        runCatching {
+            val durationMs = 80L
+            val effect = VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vibratorManager = getSystemService(VibratorManager::class.java)
+                vibratorManager?.defaultVibrator?.vibrate(effect)
+            } else {
+                @Suppress("DEPRECATION")
+                val vibrator = getSystemService(VIBRATOR_SERVICE) as? Vibrator
+                vibrator?.vibrate(effect)
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_UNLOCK_TRANSITION_PLAYED, unlockTransitionPlayed)
+    }
+
     // FIX: 3
     private fun startCountdown(unlockTime: Long) {
         stopCountdown()
@@ -336,13 +402,8 @@ class CapsuleDetailsActivity : AppCompatActivity() {
                     return
                 }
 
-                // FIX: 9
-                // Details page countdown is minute-granularity (dashboard keeps seconds).
                 val totalSeconds = remaining / 1000
-                val days = totalSeconds / 86_400
-                val hours = (totalSeconds % 86_400) / 3_600
-                val minutes = (totalSeconds % 3_600) / 60
-                binding.tvUnlockReason.text = "Unlocks in ${days}d ${hours}h ${minutes}m"
+                binding.tvUnlockReason.text = "Unlocks in ${CountdownFormatter.formatRemainingDuration(totalSeconds)}"
                 mainHandler.postDelayed(this, 1000L)
             }
         }
@@ -360,15 +421,23 @@ class CapsuleDetailsActivity : AppCompatActivity() {
         val hasFineLocation = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         val hasCoarseLocation = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
         if (!hasFineLocation && !hasCoarseLocation) return
+        if (!GooglePlayServicesGuard.warnIfUnavailable(this, "CapsuleDetails")) return
 
-        LocationServices.getFusedLocationProviderClient(this)
-            .lastLocation
-            .addOnSuccessListener { location ->
-                location?.let {
-                    lastKnownUserLocation = it.latitude to it.longitude
-                    viewModel.capsule.value?.let { capsule -> bindCapsuleData(capsule) }
+        try {
+            LocationServices.getFusedLocationProviderClient(this)
+                .lastLocation
+                .addOnSuccessListener { location ->
+                    location?.let {
+                        lastKnownUserLocation = it.latitude to it.longitude
+                        viewModel.capsule.value?.let { capsule -> bindCapsuleData(capsule) }
+                    }
                 }
-            }
+                .addOnFailureListener { throwable ->
+                    Log.w("CapsuleDetails", "Failed to fetch last known location", throwable)
+                }
+        } catch (securityException: SecurityException) {
+            Log.w("CapsuleDetails", "Security exception while reading fused location", securityException)
+        }
     }
 
     private fun handleActionState(state: ActionState) {
@@ -453,5 +522,6 @@ class CapsuleDetailsActivity : AppCompatActivity() {
     companion object {
         // FIX: 15
         private const val LOCATION_UNLOCK_RADIUS_METERS = 50f
+        private const val KEY_UNLOCK_TRANSITION_PLAYED = "key_unlock_transition_played"
     }
 }

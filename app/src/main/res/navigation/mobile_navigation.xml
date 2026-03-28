@@ -62,6 +62,22 @@
         android:label="@string/title_profile"
         tools:layout="@layout/fragment_profile" />
 
+    <fragment
+        android:id="@+id/chatListFragment"
+        android:name="com.example.chronovault.ui.chat.ChatListFragment"
+        android:label="@string/chat_list_title"
+        tools:layout="@layout/fragment_chat_list">
+        <action
+            android:id="@+id/action_chatListFragment_to_chatFragment"
+            app:destination="@id/chatFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.example.chronovault.ui.chat.ChatFragment"
+        android:label="@string/chat_list_title"
+        tools:layout="@layout/fragment_chat" />
+
 </navigation>
 
 

@@ -3,9 +3,16 @@ package com.example.chronovault.ui.notifications
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.chronovault.R
 import com.example.chronovault.data.ServiceLocator
+import com.example.chronovault.data.local.entity.NotificationCategory
+import com.example.chronovault.data.local.entity.NotificationEntity
+import com.example.chronovault.data.local.entity.NotificationType
+import com.example.chronovault.data.repository.NotificationRepository
 import com.example.chronovault.ui.common.LoadingState
 import com.example.chronovault.utils.PreferencesManager
 import kotlinx.coroutines.launch
@@ -17,9 +24,15 @@ import kotlinx.coroutines.launch
 class NotificationsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val preferencesManager: PreferencesManager = ServiceLocator.providePreferencesManager(application)
+    private val notificationRepository: NotificationRepository = ServiceLocator.provideNotificationRepository(application)
+    private val allNotifications: LiveData<List<NotificationEntity>> =
+        notificationRepository.observeNotifications().asLiveData()
 
     // UI State
-    private val _notifications = MutableLiveData<List<AppNotification>>(emptyList())
+    private val _selectedCategory = MutableLiveData(NotificationCategory.PERSONAL)
+    val selectedCategory: LiveData<NotificationCategory> = _selectedCategory
+
+    private val _notifications = MediatorLiveData<List<AppNotification>>(emptyList())
     val notifications: LiveData<List<AppNotification>> = _notifications
 
     private val _loadingState = MutableLiveData<LoadingState>(LoadingState.Idle)
@@ -31,61 +44,44 @@ class NotificationsViewModel(application: Application) : AndroidViewModel(applic
     private val _notificationVibration = MutableLiveData<Boolean>(true)
     val notificationVibration: LiveData<Boolean> = _notificationVibration
 
+    private val _emptyStateMessage = MediatorLiveData<String>()
+    val emptyStateMessage: LiveData<String> = _emptyStateMessage
+
     init {
-        loadNotifications()
+        setupNotificationStream()
         loadNotificationPreferences()
     }
 
-    fun loadNotifications() {
+    private fun setupNotificationStream() {
         _loadingState.value = LoadingState.Loading
-        viewModelScope.launch {
-            try {
-                // Mock notifications - in real app, fetch from Firestore
-                val mockNotifications = listOf(
-                    AppNotification(
-                        id = "1",
-                        title = "You're near a memory!",
-                        message = "You're within 100m of 'Summer 2024' capsule",
-                        timestamp = System.currentTimeMillis() - 300000, // 5 mins ago
-                        type = NotificationType.LOCATION_UNLOCK,
-                        capsuleTitle = "Summer 2024",
-                        read = false
-                    ),
-                    AppNotification(
-                        id = "2",
-                        title = "Capsule Unlocked!",
-                        message = "'Graduation Day' capsule has been unlocked",
-                        timestamp = System.currentTimeMillis() - 3600000, // 1 hour ago
-                        type = NotificationType.TIME_UNLOCK,
-                        capsuleTitle = "Graduation Day",
-                        read = false
-                    ),
-                    AppNotification(
-                        id = "3",
-                        title = "New Shared Capsule",
-                        message = "Sarah shared 'Paris Trip' with you",
-                        timestamp = System.currentTimeMillis() - 86400000, // 1 day ago
-                        type = NotificationType.SHARED,
-                        capsuleTitle = "Paris Trip",
-                        read = true
-                    ),
-                    AppNotification(
-                        id = "4",
-                        title = "Capsule Created",
-                        message = "Your capsule 'New Year Wishes' has been saved",
-                        timestamp = System.currentTimeMillis() - 172800000, // 2 days ago
-                        type = NotificationType.CAPSULE_CREATED,
-                        capsuleTitle = "New Year Wishes",
-                        read = true
-                    )
-                )
 
-                _notifications.value = mockNotifications
-                _loadingState.value = LoadingState.Success
-            } catch (e: Exception) {
-                _loadingState.value = LoadingState.Error(e.message ?: "Failed to load notifications")
+        val recompute: () -> Unit = {
+            val selected = _selectedCategory.value ?: NotificationCategory.PERSONAL
+            val mapped = allNotifications.value.orEmpty()
+                .filter { it.typeCategory == selected }
+                .sortedByDescending { it.timestamp }
+                .map { it.toUi() }
+            _notifications.value = mapped
+            _emptyStateMessage.value = when (selected) {
+                NotificationCategory.PERSONAL -> getApplication<Application>().getString(R.string.empty_personal_notifications)
+                NotificationCategory.WORLD -> getApplication<Application>().getString(R.string.empty_world_notifications)
             }
+            _loadingState.value = LoadingState.Success
         }
+
+        _notifications.addSource(allNotifications) { recompute() }
+        _notifications.addSource(_selectedCategory) { recompute() }
+        _emptyStateMessage.addSource(_selectedCategory) { recompute() }
+    }
+
+    fun setCategory(category: NotificationCategory) {
+        if (_selectedCategory.value == category) return
+        _selectedCategory.value = category
+    }
+
+    fun loadNotifications() {
+        // Kept for compatibility with existing calls.
+        _loadingState.value = LoadingState.Success
     }
 
     fun loadNotificationPreferences() {
@@ -94,23 +90,21 @@ class NotificationsViewModel(application: Application) : AndroidViewModel(applic
     }
 
     fun markAsRead(notificationId: String) {
-        val currentList = _notifications.value?.toMutableList() ?: return
-        val index = currentList.indexOfFirst { it.id == notificationId }
-        if (index != -1) {
-            currentList[index] = currentList[index].copy(read = true)
-            _notifications.value = currentList
-            preferencesManager.setNotificationRead(notificationId, true)
+        viewModelScope.launch {
+            notificationRepository.markAsRead(notificationId)
         }
     }
 
     fun deleteNotification(notificationId: String) {
-        val currentList = _notifications.value?.toMutableList() ?: return
-        currentList.removeAll { it.id == notificationId }
-        _notifications.value = currentList
+        viewModelScope.launch {
+            notificationRepository.deleteNotification(notificationId)
+        }
     }
 
     fun clearAllNotifications() {
-        _notifications.value = emptyList()
+        viewModelScope.launch {
+            notificationRepository.clearAll()
+        }
     }
 
     fun toggleNotificationSound(enabled: Boolean) {
@@ -146,15 +140,21 @@ data class AppNotification(
     val message: String,
     val timestamp: Long,
     val type: NotificationType,
-    val capsuleTitle: String,
+    val typeCategory: NotificationCategory,
+    val capsuleId: String?,
     val read: Boolean = false
 )
 
-enum class NotificationType {
-    TIME_UNLOCK,
-    LOCATION_UNLOCK,
-    SHARED,
-    CAPSULE_CREATED,
-    OTHER
+private fun NotificationEntity.toUi(): AppNotification {
+    return AppNotification(
+        id = id,
+        title = title,
+        message = message,
+        timestamp = timestamp,
+        type = type,
+        typeCategory = typeCategory,
+        capsuleId = capsuleId,
+        read = isRead
+    )
 }
 

@@ -54,6 +54,9 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
     private val _isSharedCapsule = MutableLiveData(false)
     val isSharedCapsule: LiveData<Boolean> = _isSharedCapsule
 
+    private val _canComment = MutableLiveData(false)
+    val canComment: LiveData<Boolean> = _canComment
+
     private var currentCapsuleId: String? = null
 
     fun loadCapsule(capsuleId: String) {
@@ -81,6 +84,7 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
                     val userId = preferencesManager.getUserId()
                     _isOwner.value = normalizedCapsule.ownerId == userId
                     _isSharedCapsule.value = normalizedCapsule.canBeShared || normalizedCapsule.sharedWith.isNotEmpty()
+                    _canComment.value = normalizedCapsule.isSharedWithMe && normalizedCapsule.isDiscovered
                     _sharedWithEmails.value = normalizedCapsule.sharedWith
                     checkUnlockConditions(normalizedCapsule)
                     _loadingState.value = LoadingState.Success
@@ -225,6 +229,11 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
 
         if (text.isBlank()) {
             _actionState.value = ActionState.Error("Comment cannot be empty")
+            return
+        }
+
+        if (_canComment.value != true) {
+            _actionState.value = ActionState.Error("Comments are available after discovering shared memories")
             return
         }
 

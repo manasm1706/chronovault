@@ -30,22 +30,65 @@
                 android:orientation="vertical"
                 android:padding="@dimen/spacing_lg">
 
-                <TextView
-                    android:id="@+id/tv_greeting"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.ChronoVault.HeadlineMedium"
-                    android:textColor="@color/white"
-                    tools:text="Good evening, Manas 👋" />
+                    android:gravity="top"
+                    android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/tv_greeting_subtitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/spacing_xs"
-                    android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
-                    android:textColor="@color/white"
-                    tools:text="You have memories waiting to be rediscovered" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_greeting"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.ChronoVault.HeadlineMedium"
+                            android:textColor="@color/white"
+                            tools:text="Good evening, Manas 👋" />
+
+                        <TextView
+                            android:id="@+id/tv_greeting_subtitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/spacing_xs"
+                            android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
+                            android:textColor="@color/white"
+                            tools:text="You have memories waiting to be rediscovered" />
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:id="@+id/container_notifications"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"
+                        android:padding="12dp">
+
+                        <ImageView
+                            android:id="@+id/iv_notifications"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@string/title_notifications"
+                            android:src="@drawable/ic_notification"
+                            app:tint="@color/white" />
+
+                        <View
+                            android:id="@+id/view_notification_dot"
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:layout_gravity="top|end"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginEnd="5dp"
+                            android:background="@drawable/bg_notification_dot"
+                            android:visibility="gone" />
+                    </FrameLayout>
+                </LinearLayout>
             </LinearLayout>
 
             <com.google.android.material.card.MaterialCardView

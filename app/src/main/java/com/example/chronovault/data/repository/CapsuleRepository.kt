@@ -52,6 +52,10 @@ class CapsuleRepository(
         capsuleDao.unlockCapsule(capsuleId)
     }
 
+    suspend fun markCapsuleDiscovered(capsuleId: String) {
+        capsuleDao.markCapsuleDiscovered(capsuleId)
+    }
+
     suspend fun getTotalCapsuleCount(userId: String): Int {
         return capsuleDao.getTotalCapsuleCount(userId)
     }
@@ -150,6 +154,49 @@ class CapsuleRepository(
             )
             insertCapsule(capsule)
             Result.success(capsule)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun restoreUserCapsulesFromCloudIfLocalEmpty(userId: String): Result<Int> {
+        return try {
+            val localCount = capsuleDao.getTotalCapsuleCount(userId)
+            if (localCount > 0) return Result.success(0)
+
+            val remote = firestoreCapsuleService.getUserCapsules(userId)
+            if (remote.isFailure) {
+                return Result.failure(remote.exceptionOrNull() ?: Exception("Failed to fetch remote capsules"))
+            }
+
+            val remoteCapsules = remote.getOrThrow()
+            var restored = 0
+            remoteCapsules.forEach { data ->
+                val id = data["id"] as? String ?: return@forEach
+                val capsule = CapsuleEntity(
+                    id = id,
+                    title = data["title"] as? String ?: "",
+                    message = data["message"] as? String ?: "",
+                    imageBase64 = (data["imageBase64"] as? String)?.ifBlank { null },
+                    imageMimeType = data["imageMimeType"] as? String ?: "image/jpeg",
+                    latitude = (data["latitude"] as? Number)?.toDouble() ?: 0.0,
+                    longitude = (data["longitude"] as? Number)?.toDouble() ?: 0.0,
+                    createdAt = (data["createdAt"] as? Number)?.toLong() ?: System.currentTimeMillis(),
+                    unlockTime = (data["unlockTime"] as? Number)?.toLong(),
+                    unlockLatitude = (data["unlockLatitude"] as? Number)?.toDouble(),
+                    unlockLongitude = (data["unlockLongitude"] as? Number)?.toDouble(),
+                    isUnlocked = data["isUnlocked"] as? Boolean ?: false,
+                    isLocationBased = data["isLocationBased"] as? Boolean ?: false,
+                    isTimeBased = data["isTimeBased"] as? Boolean ?: false,
+                    ownerId = data["ownerId"] as? String ?: userId,
+                    sharedWith = (data["sharedWith"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
+                    canBeShared = data["canBeShared"] as? Boolean ?: false
+                )
+                capsuleDao.insertCapsule(capsule)
+                restored += 1
+            }
+
+            Result.success(restored)
         } catch (e: Exception) {
             Result.failure(e)
         }

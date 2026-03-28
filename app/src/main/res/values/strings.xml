@@ -62,6 +62,12 @@
     <string name="home_nearby_title">You\'re near a memory</string>
     <string name="home_nearby_body">%1$s is nearby and waiting for you.</string>
     <string name="home_view_memory">View Memory</string>
+    <string name="home_go_to_location">Go to Location</string>
+    <string name="location_somewhere_in">Somewhere in %1$s</string>
+    <string name="location_unknown">Unknown location</string>
+    <string name="discovery_title">You discovered a memory</string>
+    <string name="discovery_subtitle">A hidden memory is now within your reach.</string>
+    <string name="discovery_open_memory">Open Memory</string>
 
 
     <string name="home_empty_title">No memories yet</string>
@@ -87,6 +93,17 @@
     <string name="button_share">Share</string>
     <string name="button_delete">Delete</string>
     <string name="empty_capsules">No capsules yet. Create one to get started!</string>
+    <string name="capsule_status_time_locked">Time lock</string>
+    <string name="capsule_status_unlocked">Unlocked</string>
+    <string name="capsule_status_locked">Locked</string>
+    <string name="capsule_status_shared">Shared</string>
+    <string name="capsule_countdown_placeholder">00:00:00</string>
+    <string name="capsule_status_content_desc">Capsule lock status</string>
+    <string name="capsule_image_desc">Capsule image</string>
+    <string name="placeholder_capsule_title">Capsule Title</string>
+    <string name="placeholder_created_date">25 Feb 2026</string>
+    <string name="capsule_map_clue_desc">Show approximate unlock area on map</string>
+    <string name="map_clue_toast">Showing a 1 km clue area for this locked memory</string>
 
     <!-- Create Capsule -->
     <string name="title_create_capsule">Create Capsule</string>
@@ -129,9 +146,22 @@
     <string name="map_mode_personal">Personal</string>
     <string name="map_mode_world">World</string>
     <string name="map_mode_content_desc">Map mode switch</string>
+    <string name="map_options_content_desc">Map options</string>
+    <string name="map_toggle_clue_circles">Show clue circles</string>
+    <string name="map_toggle_nearby_waves">Show nearby waves</string>
+    <string name="map_toggle_my_location">Show my location</string>
+    <string name="map_toggle_discovery_overlay">Show discovery overlay</string>
+    <string name="map_center_location_unavailable">Current location is not available yet</string>
 
     <!-- Notifications -->
     <string name="title_alerts">Alerts</string>
+    <string name="chat_list_title">Chats</string>
+    <string name="chat_empty">No chats yet</string>
+    <string name="chat_no_messages">Start a conversation</string>
+    <string name="chat_share_capsule">Share Capsule</string>
+    <string name="chat_hint_message">Type a message</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_view_capsule">View</string>
     <string name="title_notifications_header">Notifications</string>
     <string name="button_clear_all">Clear All</string>
     <string name="notification_icon_desc">Notification icon</string>
@@ -146,6 +176,10 @@
     <string name="empty_notifications">No alerts yet</string>
     <string name="notification_channel_name">ChronoVault Notifications</string>
     <string name="notification_channel_desc">Alerts for memory unlocks and nearby locations</string>
+    <string name="notification_personal">Personal</string>
+    <string name="notification_world">World</string>
+    <string name="empty_personal_notifications">No personal notifications</string>
+    <string name="empty_world_notifications">No world notifications</string>
 
     <!-- Profile -->
     <string name="title_profile">Profile</string>
@@ -162,12 +196,43 @@
     <string name="button_logout">Logout</string>
     <string name="button_edit_profile">Edit Profile</string>
     <string name="confirm_logout">Are you sure you want to logout?</string>
+    <string name="profile_user_id_label">Your User ID</string>
+    <string name="profile_copy_id">Copy</string>
+    <string name="profile_user_id_copied">User ID copied</string>
+    <string name="profile_friends_section">Friends</string>
+    <string name="profile_friend_id_hint">Enter friend user ID</string>
+    <string name="profile_add_friend">Add Friend</string>
+    <string name="profile_no_friends">No friends yet — add using ID</string>
+    <string name="profile_friend_requests_section">Friend Requests</string>
+    <string name="profile_no_friend_requests">No pending requests</string>
+    <string name="profile_delete_account_title">Delete Account</string>
+    <string name="profile_delete_account_message">Are you sure? This cannot be undone.</string>
+    <string name="friend_accept">Accept</string>
+    <string name="friend_reject">Reject</string>
+    <string name="profile_update_name">Update Name</string>
+    <string name="profile_notification_sound">Notification Sound</string>
+    <string name="profile_notification_vibration">Notification Vibration</string>
+    <string name="profile_user_id_clip_label">ChronoVault User ID</string>
+    <string name="profile_section_account">Account</string>
+    <string name="profile_section_user_id">User ID</string>
+    <string name="profile_section_appearance">Appearance</string>
+    <string name="profile_section_notifications">Notifications</string>
+    <string name="profile_section_danger_zone">Danger Zone</string>
+    <string name="profile_theme_mode">Theme Mode</string>
+    <string name="profile_theme_mode_system">System Default</string>
+    <string name="profile_theme_mode_light">Light</string>
+    <string name="profile_theme_mode_dark">Dark</string>
+    <string name="profile_color_scheme">Color Scheme</string>
+    <string name="profile_color_scheme_green">Metallic Green</string>
+    <string name="profile_color_scheme_blue">Deep Blue</string>
+    <string name="profile_color_scheme_ochre">Warm Ochre</string>
+    <string name="profile_color_scheme_gray">Neutral Gray</string>
 
     <!-- Capsule Details - Sharing & Comments -->
     <string name="shared_with_header">Shared With</string>
     <string name="not_shared_yet">Not shared with anyone yet</string>
     <string name="comments_header">Comments</string>
-    <string name="no_comments_yet">No comments yet. Be the first!</string>
+    <string name="no_comments_yet">No comments yet</string>
     <string name="hint_add_comment">Add a comment…</string>
     <string name="button_send">Send</string>
     <string name="button_make_private">Make Private</string>

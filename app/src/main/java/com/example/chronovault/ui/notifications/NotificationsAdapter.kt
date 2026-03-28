@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.chronovault.R
+import com.example.chronovault.data.local.entity.NotificationType
 import com.example.chronovault.databinding.ItemNotificationBinding
 
 /**
@@ -39,18 +40,18 @@ class NotificationsAdapter(
 
                 // Icon based on type
                 val iconRes = when (notification.type) {
-                    NotificationType.TIME_UNLOCK -> R.drawable.ic_asset_bookmark
-                    NotificationType.LOCATION_UNLOCK -> R.drawable.ic_asset_map
-                    NotificationType.SHARED -> R.drawable.ic_asset_contacts
-                    NotificationType.CAPSULE_CREATED -> R.drawable.ic_asset_cog
-                    else -> R.drawable.ic_asset_bookmark
+                    NotificationType.UNLOCK -> R.drawable.ic_asset_bookmark
+                    NotificationType.NEARBY -> R.drawable.ic_asset_map
+                    NotificationType.SHARE -> R.drawable.ic_asset_contacts
+                    NotificationType.CHAT -> R.drawable.ic_asset_contacts
                 }
                 ivIcon.setImageResource(iconRes)
 
                 // Read state
-                if (notification.read) {
-                    cardNotification.alpha = 0.6f
-                }
+                cardNotification.alpha = if (notification.read) 0.65f else 1f
+                cardNotification.scaleX = 0.98f
+                cardNotification.scaleY = 0.98f
+                cardNotification.animate().scaleX(1f).scaleY(1f).setDuration(120L).start()
 
                 cardNotification.setOnClickListener {
                     onNotificationClick(notification)

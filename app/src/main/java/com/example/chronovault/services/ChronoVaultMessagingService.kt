@@ -3,9 +3,13 @@ package com.example.chronovault.services
 import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
+import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.utils.NotificationHelper
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * ChronoVaultMessagingService - Handle Firebase Cloud Messaging notifications
@@ -60,6 +64,15 @@ class ChronoVaultMessagingService : FirebaseMessagingService() {
                 }
                 "shared" -> {
                     NotificationHelper.sendSharedNotification(this, title, message)
+                    val capsuleId = data["capsuleId"]
+                    CoroutineScope(Dispatchers.IO).launch {
+                        runCatching {
+                            ServiceLocator.provideNotificationRepository(applicationContext)
+                                .createSharedNotification(capsuleId, title)
+                        }.onFailure {
+                            Log.w(TAG, "Failed to persist shared notification", it)
+                        }
+                    }
                 }
                 else -> {
                     NotificationHelper.sendCapsuleUnlockedNotification(this, title, message)

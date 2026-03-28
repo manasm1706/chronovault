@@ -23,6 +23,8 @@ import com.example.chronovault.databinding.FragmentHomeBinding
 import com.example.chronovault.ui.capsules.CreateCapsuleActivity
 import com.example.chronovault.ui.capsules.FilterType
 import com.example.chronovault.ui.common.LoadingState
+import com.example.chronovault.utils.CountdownFormatter
+import com.example.chronovault.utils.GooglePlayServicesGuard
 import com.example.chronovault.ui.map.MapFragment
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -61,8 +63,29 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecentMemoriesList()
         setupUI()
+        animateHomeEntry()
         observeViewModel()
         requestLocationPermissionIfNeeded()
+    }
+
+    private fun animateHomeEntry() {
+        binding.tvGreeting.translationY = -16f
+        binding.tvGreetingSubtitle.translationY = -12f
+        binding.tvGreeting.alpha = 0f
+        binding.tvGreetingSubtitle.alpha = 0f
+        binding.tvGreeting.animate().alpha(1f).translationY(0f).setDuration(280L).start()
+        binding.tvGreetingSubtitle.animate().alpha(1f).translationY(0f).setStartDelay(90L).setDuration(320L).start()
+
+        listOf(binding.cardTotal, binding.cardLocked, binding.cardUnlocked, binding.cardShared).forEachIndexed { index, card ->
+            card.translationY = 24f
+            card.alpha = 0f
+            card.animate()
+                .translationY(0f)
+                .alpha(1f)
+                .setStartDelay((70L * index))
+                .setDuration(260L)
+                .start()
+        }
     }
 
     override fun onResume() {
@@ -85,12 +108,27 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupUI() {
+        listOf(
+            binding.btnCreateCapsule,
+            binding.btnRefreshQuote,
+            binding.containerNotifications,
+            binding.cardTotal,
+            binding.cardLocked,
+            binding.cardUnlocked,
+            binding.cardShared,
+            binding.btnViewNearbyMemory
+        ).forEach { applyPressFeedback(it) }
+
         binding.btnCreateCapsule.setOnClickListener {
             startActivity(Intent(requireContext(), CreateCapsuleActivity::class.java))
         }
 
         binding.btnRefreshQuote.setOnClickListener {
             viewModel.refreshQuote()
+        }
+
+        binding.containerNotifications.setOnClickListener {
+            findNavController().navigate(R.id.navigation_notifications)
         }
 
         binding.cardTotal.setOnClickListener { navigateToCapsules(FilterType.ALL) }
@@ -129,6 +167,11 @@ class HomeFragment : Fragment() {
             binding.tvQuote.text = getString(R.string.home_quote_wrapped, quote)
         }
 
+        viewModel.isQuoteRefreshing.observe(viewLifecycleOwner) { refreshing ->
+            binding.btnRefreshQuote.isEnabled = !refreshing
+            binding.btnRefreshQuote.alpha = if (refreshing) 0.6f else 1f
+        }
+
         viewModel.totalCapsules.observe(viewLifecycleOwner) { count ->
             binding.tvCountTotal.text = count.toString()
         }
@@ -143,6 +186,10 @@ class HomeFragment : Fragment() {
 
         viewModel.sharedCapsules.observe(viewLifecycleOwner) { count ->
             binding.tvCountShared.text = count.toString()
+        }
+
+        viewModel.unreadCount.observe(viewLifecycleOwner) { count ->
+            binding.viewNotificationDot.visibility = if (count > 0) View.VISIBLE else View.GONE
         }
 
         viewModel.capsuleList.observe(viewLifecycleOwner) { capsules ->
@@ -162,6 +209,12 @@ class HomeFragment : Fragment() {
                 // FIX: 9
                 stopNearbyCountdown()
             } else {
+                if (binding.cardNearbyMemory.visibility != View.VISIBLE) {
+                    binding.cardNearbyMemory.alpha = 0f
+                    binding.cardNearbyMemory.translationY = 16f
+                    binding.cardNearbyMemory.visibility = View.VISIBLE
+                    binding.cardNearbyMemory.animate().alpha(1f).translationY(0f).setDuration(220L).start()
+                }
                 binding.cardNearbyMemory.visibility = View.VISIBLE
                 // FIX: 9
                 updateNearbyBody(nearbyCapsule)
@@ -169,7 +222,7 @@ class HomeFragment : Fragment() {
                 binding.btnViewNearbyMemory.text = if (shouldOpenNearbyDetails(nearbyCapsule)) {
                     getString(R.string.home_view_memory)
                 } else {
-                    "Go to Location"
+                    getString(R.string.home_go_to_location)
                 }
             }
         }
@@ -207,12 +260,20 @@ class HomeFragment : Fragment() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return
         }
+        if (!GooglePlayServicesGuard.warnIfUnavailable(requireContext(), "HomeFragment")) return
 
-        LocationServices.getFusedLocationProviderClient(requireActivity())
-            .lastLocation
-            .addOnSuccessListener { location ->
-                location?.let { viewModel.updateUserLocation(it.latitude, it.longitude) }
-            }
+        try {
+            LocationServices.getFusedLocationProviderClient(requireActivity())
+                .lastLocation
+                .addOnSuccessListener { location ->
+                    location?.let { viewModel.updateUserLocation(it.latitude, it.longitude) }
+                }
+                .addOnFailureListener { throwable ->
+                    android.util.Log.w("HomeFragment", "Failed to fetch last location", throwable)
+                }
+        } catch (securityException: SecurityException) {
+            android.util.Log.w("HomeFragment", "Security exception while fetching fused location", securityException)
+        }
     }
 
     private fun showError(message: String) {
@@ -295,18 +356,11 @@ class HomeFragment : Fragment() {
                 }
 
                 val totalSeconds = remainingMs / 1000
-                val days = totalSeconds / 86_400
-                val hours = (totalSeconds % 86_400) / 3_600
-                val minutes = (totalSeconds % 3_600) / 60
-                val seconds = totalSeconds % 60
                 binding.tvNearbyCapsuleInfo.text = String.format(
                     Locale.getDefault(),
-                    "%s\nUnlocks in %dd %dh %dm %ds",
+                    "%s\nUnlocks in %s",
                     getString(R.string.home_nearby_body, capsule.title),
-                    days,
-                    hours,
-                    minutes,
-                    seconds
+                    CountdownFormatter.formatRemainingDuration(totalSeconds)
                 )
                 mainHandler.postDelayed(this, 1000L)
             }
@@ -319,6 +373,7 @@ class HomeFragment : Fragment() {
         nearbyCountdownRunnable?.let { mainHandler.removeCallbacks(it) }
         nearbyCountdownRunnable = null
     }
+
 
     // FIX: 1
     private fun navigateToMapSafely(capsuleId: String) {
@@ -334,6 +389,21 @@ class HomeFragment : Fragment() {
             Log.e("HomeFragment", "Map navigation skipped: fragment not attached", ise)
         } catch (t: Throwable) {
             Log.e("HomeFragment", "Map navigation failed", t)
+        }
+    }
+
+    private fun applyPressFeedback(view: View) {
+        view.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    v.animate().scaleX(0.97f).scaleY(0.97f).setDuration(90L).start()
+                }
+                android.view.MotionEvent.ACTION_UP,
+                android.view.MotionEvent.ACTION_CANCEL -> {
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(90L).start()
+                }
+            }
+            false
         }
     }
 

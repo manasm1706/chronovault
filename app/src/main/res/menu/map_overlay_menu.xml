@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_toggle_clue_circles"
+        android:checkable="true"
+        android:checked="true"
+        android:title="@string/map_toggle_clue_circles" />
+
+    <item
+        android:id="@+id/action_toggle_nearby_waves"
+        android:checkable="true"
+        android:checked="true"
+        android:title="@string/map_toggle_nearby_waves" />
+
+    <item
+        android:id="@+id/action_toggle_my_location"
+        android:checkable="true"
+        android:checked="true"
+        android:title="@string/map_toggle_my_location" />
+
+    <item
+        android:id="@+id/action_toggle_discovery_overlay"
+        android:checkable="true"
+        android:checked="true"
+        android:title="@string/map_toggle_discovery_overlay" />
+
+</menu>
+

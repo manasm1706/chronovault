@@ -27,6 +27,7 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
     private val capsuleRepository: CapsuleRepository = ServiceLocator.provideCapsuleRepository(application)
     private val preferencesManager: PreferencesManager = ServiceLocator.providePreferencesManager(application)
     private val currentUserId: String? get() = preferencesManager.getUserId()
+    private var hasAttemptedCloudRestore = false
 
     // UI State
     private val _filterType = MutableLiveData<FilterType>(FilterType.ALL)
@@ -79,6 +80,11 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
 
         viewModelScope.launch {
             try {
+                if (!hasAttemptedCloudRestore) {
+                    hasAttemptedCloudRestore = true
+                    capsuleRepository.restoreUserCapsulesFromCloudIfLocalEmpty(userId)
+                }
+
                 // FIX: 12
                 persistExpiredTimeUnlocks()
 

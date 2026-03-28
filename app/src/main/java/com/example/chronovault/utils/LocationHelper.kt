@@ -1,5 +1,7 @@
 package com.example.chronovault.utils
 
+import android.content.Context
+import android.location.Geocoder
 import android.location.Location
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -59,6 +61,21 @@ object LocationHelper {
      */
     fun formatCoordinates(latitude: Double, longitude: Double): String {
         return String.format("%.4f, %.4f", latitude, longitude)
+    }
+
+    fun getLocalityHint(context: Context, latitude: Double, longitude: Double): String? {
+        return try {
+            if (!Geocoder.isPresent()) return null
+            val geocoder = Geocoder(context)
+            @Suppress("DEPRECATION")
+            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+            val first = addresses?.firstOrNull() ?: return null
+            first.locality
+                ?: first.subAdminArea
+                ?: first.adminArea
+        } catch (_: Exception) {
+            null
+        }
     }
 }
 

@@ -4,12 +4,14 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.chronovault.R
 import com.example.chronovault.data.local.entity.CapsuleEntity
 import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.data.remote.RetrofitClient
 import com.example.chronovault.data.repository.CapsuleRepository
+import com.example.chronovault.data.repository.NotificationRepository
 import com.example.chronovault.ui.common.LoadingState
 import com.example.chronovault.utils.LocationHelper
 import com.example.chronovault.utils.PreferencesManager
@@ -25,9 +27,12 @@ import kotlinx.coroutines.launch
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val capsuleRepository: CapsuleRepository = ServiceLocator.provideCapsuleRepository(application)
+    private val notificationRepository: NotificationRepository = ServiceLocator.provideNotificationRepository(application)
     private val preferencesManager: PreferencesManager = ServiceLocator.providePreferencesManager(application)
     private var dashboardJob: Job? = null
     private var userLocation: Pair<Double, Double>? = null
+    private val nearbyTriggeredThisSession = mutableSetOf<String>()
+    private var hasAttemptedCloudRestore = false
 
     // UI State
     private val _userName = MutableLiveData<String>()
@@ -60,8 +65,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _dailyQuote = MutableLiveData<String>("Preserve moments. Rediscover yourself.")
     val dailyQuote: LiveData<String> = _dailyQuote
 
+    private val _isQuoteRefreshing = MutableLiveData(false)
+    val isQuoteRefreshing: LiveData<Boolean> = _isQuoteRefreshing
+
     private val _loadingState = MutableLiveData<LoadingState>(LoadingState.Idle)
     val loadingState: LiveData<LoadingState> = _loadingState
+
+    val unreadCount: LiveData<Int> = notificationRepository.getUnreadCount().asLiveData()
 
     init {
         loadDashboardData()
@@ -71,10 +81,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshQuote() {
         viewModelScope.launch {
             try {
+                _isQuoteRefreshing.value = true
                 val response = RetrofitClient.quoteApi.getRandomQuote()
                 _dailyQuote.value = "${response.content} — ${response.author}"
             } catch (_: Exception) {
                 // Keep the default quote on failure
+            } finally {
+                _isQuoteRefreshing.value = false
             }
         }
     }
@@ -93,6 +106,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         dashboardJob?.cancel()
         dashboardJob = viewModelScope.launch {
             try {
+                if (!hasAttemptedCloudRestore) {
+                    hasAttemptedCloudRestore = true
+                    capsuleRepository.restoreUserCapsulesFromCloudIfLocalEmpty(userId)
+                }
+
                 // FIX: 12
                 persistExpiredTimeUnlocks()
 
@@ -154,6 +172,15 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             ?.first
 
         _nearbyCapsule.value = closest
+
+        val nearby = closest
+        if (nearby != null && nearbyTriggeredThisSession.add(nearby.id)) {
+            viewModelScope.launch {
+                runCatching {
+                    notificationRepository.createNearbyNotification(nearby.id, nearby.title)
+                }
+            }
+        }
     }
 
     private fun getGreetingSubtitle(totalOwnedCapsules: Int): String {

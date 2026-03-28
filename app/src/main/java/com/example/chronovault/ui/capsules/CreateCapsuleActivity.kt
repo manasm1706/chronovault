@@ -17,7 +17,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.chronovault.R
+import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.databinding.ActivityCreateCapsuleBinding
+import com.example.chronovault.utils.GooglePlayServicesGuard
+import com.example.chronovault.utils.ThemeManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -56,6 +59,12 @@ class CreateCapsuleActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val appearancePrefs = ServiceLocator.providePreferencesManager(this)
+        ThemeManager.applyTheme(
+            activity = this,
+            modeValue = appearancePrefs.getSelectedThemeMode(),
+            schemeValue = appearancePrefs.getSelectedColorScheme()
+        )
         super.onCreate(savedInstanceState)
         binding = ActivityCreateCapsuleBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -116,10 +125,15 @@ class CreateCapsuleActivity : AppCompatActivity() {
     @Suppress("MissingPermission")
     private fun captureCurrentLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return
+        if (!GooglePlayServicesGuard.warnIfUnavailable(this, "CreateCapsuleActivity")) {
+            binding.btnPickLocation.text = "⚠️ Could not get location"
+            return
+        }
 
         // Try to get a fresh location first, fall back to last known
         val cancellationToken = CancellationTokenSource()
-        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellationToken.token)
+        try {
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellationToken.token)
             .addOnSuccessListener { location ->
                 if (location != null) {
                     Log.d("MAP", "Fresh location -> Lat: ${location.latitude}, Lng: ${location.longitude}")
@@ -152,8 +166,14 @@ class CreateCapsuleActivity : AppCompatActivity() {
                     } else {
                         Log.w("MAP", "Fallback lastLocation is null")
                     }
+                }.addOnFailureListener { fallbackError ->
+                    Log.w("MAP", "Fallback lastLocation failed", fallbackError)
                 }
             }
+        } catch (securityException: SecurityException) {
+            Log.w("MAP", "Security exception while requesting fused location", securityException)
+            binding.btnPickLocation.text = "⚠️ Could not get location"
+        }
     }
 
     private fun setupUI() {

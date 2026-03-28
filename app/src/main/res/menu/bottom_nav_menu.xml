@@ -17,9 +17,10 @@
         android:title="@string/title_capsules" />
 
     <item
-        android:id="@+id/navigation_notifications"
-        android:icon="@drawable/ic_asset_contacts"
-        android:title="@string/title_notifications" />
+        android:id="@+id/chatListFragment"
+        android:icon="@drawable/ic_chat"
+        android:title="@string/chat_list_title" />
+
 
     <item
         android:id="@+id/navigation_profile"

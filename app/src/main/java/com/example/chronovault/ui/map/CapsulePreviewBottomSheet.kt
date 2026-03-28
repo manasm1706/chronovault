@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.chronovault.R
 import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.ui.capsules.CapsuleDetailsActivity
+import com.example.chronovault.utils.LocationHelper
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 
@@ -123,6 +124,12 @@ class CapsulePreviewBottomSheet : BottomSheetDialogFragment() {
                 "⏰ Unlocks on $date"
             }
             capsule.isLocationBased -> "📍 Visit location to unlock"
+                .plus("\n")
+                .plus(
+                    LocationHelper.getLocalityHint(requireContext(), capsule.latitude, capsule.longitude)
+                        ?.let { getString(R.string.location_somewhere_in, it) }
+                        ?: getString(R.string.location_unknown)
+                )
             else -> "🔒 This memory is locked"
         }
     }

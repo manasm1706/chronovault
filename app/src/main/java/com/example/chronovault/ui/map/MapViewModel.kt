@@ -40,9 +40,15 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     val mapMode: LiveData<MapMode> = _mapMode
 
     private val _nearbyCapsules = MutableLiveData<List<CapsuleEntity>>(emptyList())
+    private val _discoveryEvent = MutableLiveData<CapsuleEntity?>(null)
+    val discoveryEvent: LiveData<CapsuleEntity?> = _discoveryEvent
+    private val discoveredEventIds = mutableSetOf<String>()
 
     private val _loadingState = MutableLiveData<LoadingState>(LoadingState.Idle)
     val loadingState: LiveData<LoadingState> = _loadingState
+
+    private val _overlayOptions = MutableLiveData(MapOverlayOptions())
+    val overlayOptions: LiveData<MapOverlayOptions> = _overlayOptions
 
     private var mapDataJob: Job? = null
     // FIX: 10
@@ -121,11 +127,44 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
                     // FIX: 15
                     distance <= 50f
                 }
+
+                nearby.forEach { capsule ->
+                    if (!capsule.isDiscovered) {
+                        capsuleRepository.markCapsuleDiscovered(capsule.id)
+                        if (discoveredEventIds.add(capsule.id)) {
+                            _discoveryEvent.value = capsule.copy(isDiscovered = true)
+                        }
+                    }
+                }
                 _nearbyCapsules.value = nearby
             } catch (_: Exception) {
                 // Silently fail on nearby check
             }
         }
+    }
+
+    fun consumeDiscoveryEvent() {
+        _discoveryEvent.value = null
+    }
+
+    fun setShowClueCircles(enabled: Boolean) {
+        val current = _overlayOptions.value ?: MapOverlayOptions()
+        _overlayOptions.value = current.copy(showClueCircles = enabled)
+    }
+
+    fun setShowNearbyWaves(enabled: Boolean) {
+        val current = _overlayOptions.value ?: MapOverlayOptions()
+        _overlayOptions.value = current.copy(showNearbyWaves = enabled)
+    }
+
+    fun setShowMyLocation(enabled: Boolean) {
+        val current = _overlayOptions.value ?: MapOverlayOptions()
+        _overlayOptions.value = current.copy(showMyLocation = enabled)
+    }
+
+    fun setShowDiscoveryOverlay(enabled: Boolean) {
+        val current = _overlayOptions.value ?: MapOverlayOptions()
+        _overlayOptions.value = current.copy(showDiscoveryOverlay = enabled)
     }
 
     // FIX: 15
@@ -208,6 +247,13 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         PERSONAL,
         WORLD
     }
+
+    data class MapOverlayOptions(
+        val showClueCircles: Boolean = true,
+        val showNearbyWaves: Boolean = true,
+        val showMyLocation: Boolean = true,
+        val showDiscoveryOverlay: Boolean = true
+    )
 
     companion object {
         // FIX: 15

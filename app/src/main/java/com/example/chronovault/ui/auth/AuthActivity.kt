@@ -9,6 +9,7 @@ import com.example.chronovault.MainActivity
 import com.example.chronovault.R
 import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.databinding.ActivityAuthBinding
+import com.example.chronovault.utils.ThemeManager
 
 /**
  * AuthActivity - Container for authentication screens (Login/Signup)
@@ -20,6 +21,12 @@ class AuthActivity : AppCompatActivity() {
     private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val appearancePrefs = ServiceLocator.providePreferencesManager(this)
+        ThemeManager.applyTheme(
+            activity = this,
+            modeValue = appearancePrefs.getSelectedThemeMode(),
+            schemeValue = appearancePrefs.getSelectedColorScheme()
+        )
         super.onCreate(savedInstanceState)
 
         binding = ActivityAuthBinding.inflate(layoutInflater)

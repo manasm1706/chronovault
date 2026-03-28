@@ -33,6 +33,8 @@ class PreferencesManager(context: Context) {
         private const val KEY_NOTIFICATION_SOUND = "notification_sound"
         private const val KEY_NOTIFICATION_VIBRATION = "notification_vibration"
         private const val KEY_LOCATION_TRACKING_ENABLED = "location_tracking_enabled"
+        private const val KEY_SELECTED_THEME_MODE = "selected_theme_mode"
+        private const val KEY_SELECTED_COLOR_SCHEME = "selected_color_scheme"
     }
 
     // User Session
@@ -116,6 +118,22 @@ class PreferencesManager(context: Context) {
 
     fun isLocationTrackingEnabled(): Boolean {
         return sharedPreferences.getBoolean(KEY_LOCATION_TRACKING_ENABLED, false)
+    }
+
+    fun setSelectedThemeMode(mode: String) {
+        sharedPreferences.edit().putString(KEY_SELECTED_THEME_MODE, mode).apply()
+    }
+
+    fun getSelectedThemeMode(): String {
+        return sharedPreferences.getString(KEY_SELECTED_THEME_MODE, "SYSTEM") ?: "SYSTEM"
+    }
+
+    fun setSelectedColorScheme(scheme: String) {
+        sharedPreferences.edit().putString(KEY_SELECTED_COLOR_SCHEME, scheme).apply()
+    }
+
+    fun getSelectedColorScheme(): String {
+        return sharedPreferences.getString(KEY_SELECTED_COLOR_SCHEME, "GREEN") ?: "GREEN"
     }
 
     // Generic String methods for auth tokens and other data

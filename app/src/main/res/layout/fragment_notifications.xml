@@ -34,6 +34,32 @@
             android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall" />
     </LinearLayout>
 
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chip_group_notifications"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="4dp"
+        app:singleSelection="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layout_header">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipPersonal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:checked="true"
+            android:text="@string/notification_personal" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipWorld"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:text="@string/notification_world" />
+    </com.google.android.material.chip.ChipGroup>
+
     <!-- Notifications RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_notifications"
@@ -43,12 +69,12 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layout_header"
+        app:layout_constraintTop_toBottomOf="@id/chip_group_notifications"
         tools:listitem="@layout/item_notification" />
 
     <!-- Empty State -->
     <LinearLayout
-        android:id="@+id/tv_no_notifications"
+        android:id="@+id/layout_no_notifications"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="vertical"
@@ -57,7 +83,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layout_header">
+        app:layout_constraintTop_toBottomOf="@id/chip_group_notifications">
 
         <ImageView
             android:layout_width="64dp"
@@ -68,6 +94,7 @@
             android:layout_marginBottom="16dp" />
 
         <TextView
+            android:id="@+id/tv_no_notifications"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/empty_notifications"

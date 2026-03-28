@@ -8,6 +8,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.chronovault.R
+import com.example.chronovault.utils.GooglePlayServicesGuard
 import com.example.chronovault.utils.NotificationHelper
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -27,6 +28,10 @@ class ForegroundLocationService : Service() {
     private lateinit var locationCallback: LocationCallback
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (!GooglePlayServicesGuard.warnIfUnavailable(this, TAG)) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         // Create notification channel
@@ -72,6 +77,8 @@ class ForegroundLocationService : Service() {
                 locationCallback,
                 null
             )
+        } catch (e: SecurityException) {
+            Log.w(TAG, "Security exception requesting location updates", e)
         } catch (e: Exception) {
             Log.e(TAG, "Error requesting location updates: ${e.message}")
         }

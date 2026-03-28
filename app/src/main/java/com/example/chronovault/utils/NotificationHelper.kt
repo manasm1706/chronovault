@@ -2,21 +2,35 @@ package com.example.chronovault.utils
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
+import android.util.TypedValue
 import androidx.core.app.NotificationCompat
 import com.example.chronovault.R
+import com.example.chronovault.MainActivity
 
 /**
  * Helper class for managing notifications
  */
 object NotificationHelper {
+    private fun resolveThemePrimaryColor(context: Context): Int {
+        val typedValue = TypedValue()
+        return if (context.theme.resolveAttribute(androidx.appcompat.R.attr.colorPrimary, typedValue, true)) {
+            typedValue.data
+        } else {
+            context.getColor(R.color.primary)
+        }
+    }
+
 
     const val CHANNEL_ID = "chronovault_notifications"
     const val CHANNEL_NAME = "ChronoVault Notifications"
     const val NOTIFICATION_ID_UNLOCK = 1001
     const val NOTIFICATION_ID_NEARBY = 1002
     const val NOTIFICATION_ID_SHARED = 1003
+    const val NOTIFICATION_ID_CHAT = 1004
 
     /**
      * Create notification channel (required for Android 8.0+)
@@ -50,7 +64,7 @@ object NotificationHelper {
             .setContentTitle("Capsule Unlocked!")
             .setContentText("$capsuleTitle is now ready to open")
             .setAutoCancel(true)
-            .setColor(context.getColor(R.color.primary))
+            .setColor(resolveThemePrimaryColor(context))
             .setStyle(NotificationCompat.BigTextStyle().bigText("$capsuleTitle is now ready to open"))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
     }
@@ -67,7 +81,7 @@ object NotificationHelper {
             .setContentTitle("Memory Location Nearby!")
             .setContentText("You're near: $capsuleTitle")
             .setAutoCancel(true)
-            .setColor(context.getColor(R.color.primary))
+            .setColor(resolveThemePrimaryColor(context))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
     }
 
@@ -83,7 +97,7 @@ object NotificationHelper {
             .setContentTitle("New Shared Capsule")
             .setContentText("$fromName shared a memory with you")
             .setAutoCancel(true)
-            .setColor(context.getColor(R.color.primary))
+            .setColor(resolveThemePrimaryColor(context))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
     }
 
@@ -105,7 +119,7 @@ object NotificationHelper {
             .setContentTitle(title)
             .setContentText(message)
             .setAutoCancel(true)
-            .setColor(context.getColor(R.color.primary))
+            .setColor(resolveThemePrimaryColor(context))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVibrate(longArrayOf(0, 500))
 
@@ -121,7 +135,7 @@ object NotificationHelper {
             .setContentTitle(title)
             .setContentText(message)
             .setAutoCancel(true)
-            .setColor(context.getColor(R.color.primary))
+            .setColor(resolveThemePrimaryColor(context))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVibrate(longArrayOf(0, 500))
 
@@ -137,10 +151,44 @@ object NotificationHelper {
             .setContentTitle(title)
             .setContentText(message)
             .setAutoCancel(true)
-            .setColor(context.getColor(R.color.primary))
+            .setColor(resolveThemePrimaryColor(context))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVibrate(longArrayOf(0, 500))
 
         showNotification(context, NOTIFICATION_ID_SHARED, builder)
     }
+
+    fun sendChatMessageNotification(
+        context: Context,
+        chatId: String,
+        otherUserId: String,
+        senderName: String,
+        message: String
+    ) {
+        val tapIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(EXTRA_NAV_CHAT_ID, chatId)
+            putExtra(EXTRA_NAV_CHAT_USER_ID, otherUserId)
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            chatId.hashCode(),
+            tapIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+            .setContentTitle("New message from $senderName")
+            .setContentText(message)
+            .setAutoCancel(true)
+            .setColor(resolveThemePrimaryColor(context))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+
+        showNotification(context, NOTIFICATION_ID_CHAT, builder)
+    }
+
+    const val EXTRA_NAV_CHAT_ID = "extra_nav_chat_id"
+    const val EXTRA_NAV_CHAT_USER_ID = "extra_nav_chat_user_id"
 }

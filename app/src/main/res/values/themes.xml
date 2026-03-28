@@ -80,6 +80,32 @@
         <item name="bottomNavigationStyle">@style/Widget.ChronoVault.BottomNav</item>
     </style>
 
+    <style name="Theme.ChronoVault.Scheme.MetallicGreen" parent="Theme.ChronoVault" />
+
+    <style name="Theme.ChronoVault.Scheme.DeepBlue" parent="Theme.ChronoVault">
+        <item name="colorPrimary">@color/scheme_blue_primary</item>
+        <item name="colorPrimaryContainer">@color/scheme_blue_primary_container</item>
+        <item name="colorSecondary">@color/scheme_blue_secondary</item>
+        <item name="colorSecondaryContainer">@color/scheme_blue_secondary_container</item>
+        <item name="colorTertiary">@color/scheme_blue_accent</item>
+    </style>
+
+    <style name="Theme.ChronoVault.Scheme.WarmOchre" parent="Theme.ChronoVault">
+        <item name="colorPrimary">@color/scheme_ochre_primary</item>
+        <item name="colorPrimaryContainer">@color/scheme_ochre_primary_container</item>
+        <item name="colorSecondary">@color/scheme_ochre_secondary</item>
+        <item name="colorSecondaryContainer">@color/scheme_ochre_secondary_container</item>
+        <item name="colorTertiary">@color/scheme_ochre_accent</item>
+    </style>
+
+    <style name="Theme.ChronoVault.Scheme.NeutralGray" parent="Theme.ChronoVault">
+        <item name="colorPrimary">@color/scheme_gray_primary</item>
+        <item name="colorPrimaryContainer">@color/scheme_gray_primary_container</item>
+        <item name="colorSecondary">@color/scheme_gray_secondary</item>
+        <item name="colorSecondaryContainer">@color/scheme_gray_secondary_container</item>
+        <item name="colorTertiary">@color/scheme_gray_accent</item>
+    </style>
+
     <!-- ===== TYPOGRAPHY ===== -->
 
     <!-- Heading alias -->

@@ -7,6 +7,7 @@ import androidx.work.WorkerParameters
 import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.utils.LocationHelper
 import com.example.chronovault.utils.NotificationHelper
+import com.example.chronovault.utils.GooglePlayServicesGuard
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Tasks
@@ -27,8 +28,13 @@ class LocationBasedUnlockWorker(
         return try {
             val capsuleRepository = ServiceLocator.provideCapsuleRepository(applicationContext)
             val preferencesManager = ServiceLocator.providePreferencesManager(applicationContext)
+            val notificationRepository = ServiceLocator.provideNotificationRepository(applicationContext)
 
             if (!preferencesManager.isLocationTrackingEnabled()) {
+                return Result.success()
+            }
+
+            if (!GooglePlayServicesGuard.warnIfUnavailable(applicationContext, "LocationUnlockWorker")) {
                 return Result.success()
             }
 
@@ -53,16 +59,29 @@ class LocationBasedUnlockWorker(
                     if (distance <= 50f && !capsule.isUnlocked) {
                         capsuleRepository.unlockCapsule(capsule.id)
 
+                        if (capsule.isSharedWithMe && !capsule.isDiscovered) {
+                            capsuleRepository.markCapsuleDiscovered(capsule.id)
+                        }
+
                         // Send notification
                         NotificationHelper.sendLocationBasedUnlockNotification(
                             applicationContext,
                             capsule.title,
                             "You're near \"${capsule.title}\"! Unlock it now."
                         )
+
+                        notificationRepository.createUnlockNotification(
+                            capsuleId = capsule.id,
+                            capsuleTitle = capsule.title,
+                            source = "location"
+                        )
                     }
                 }
             }
 
+            Result.success()
+        } catch (e: SecurityException) {
+            // Recoverable environment issue (Play services broker/security mismatch). Avoid retry loop.
             Result.success()
         } catch (e: Exception) {
             Result.retry()

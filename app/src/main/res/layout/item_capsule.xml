@@ -19,6 +19,7 @@
             android:id="@+id/iv_capsule_image"
             android:layout_width="80dp"
             android:layout_height="80dp"
+            android:contentDescription="@string/capsule_image_desc"
             android:src="@android:drawable/ic_dialog_info"
             android:scaleType="centerCrop"
             android:layout_marginEnd="12dp" />
@@ -36,16 +37,31 @@
                 android:id="@+id/tv_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Capsule Title"
+                android:text="@string/placeholder_capsule_title"
                 android:textAppearance="@style/TextAppearance.ChronoVault.TitleMedium"
                 android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tv_countdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="monospace"
+                android:includeFontPadding="false"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/capsule_countdown_placeholder"
+                android:textAlignment="viewStart"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
 
             <!-- Location -->
             <TextView
                 android:id="@+id/tv_location"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="📍 Location saved"
+                android:text="@string/home_location_available"
                 android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginBottom="4dp" />
@@ -55,21 +71,39 @@
                 android:id="@+id/tv_created_date"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="25 Feb 2026"
+                android:text="@string/placeholder_created_date"
                 android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall"
                 android:textColor="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
 
-        <!-- Status Badge -->
-        <com.google.android.material.chip.Chip
-            android:id="@+id/tv_status"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:text="Locked"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall"
-            app:chipBackgroundColor="?attr/colorPrimary"
-            android:textColor="?attr/colorOnPrimary" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Status Badge -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/tv_status"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:text="@string/capsule_status_locked"
+                android:contentDescription="@string/capsule_status_content_desc"
+                android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall"
+                app:chipBackgroundColor="?attr/colorPrimary"
+                android:textColor="?attr/colorOnPrimary" />
+
+            <ImageView
+                android:id="@+id/iv_map_clue"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="@string/capsule_map_clue_desc"
+                android:src="@drawable/ic_asset_map"
+                android:visibility="gone"
+                app:tint="?attr/colorPrimary" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
 

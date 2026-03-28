@@ -48,6 +48,9 @@ interface CapsuleDao {
     @Query("UPDATE capsules SET isUnlocked = 1 WHERE id = :capsuleId")
     suspend fun unlockCapsule(capsuleId: String)
 
+    @Query("UPDATE capsules SET isDiscovered = 1 WHERE id = :capsuleId")
+    suspend fun markCapsuleDiscovered(capsuleId: String)
+
     @Query("DELETE FROM capsules WHERE id = :capsuleId")
     suspend fun deleteCapsuleById(capsuleId: String)
 
