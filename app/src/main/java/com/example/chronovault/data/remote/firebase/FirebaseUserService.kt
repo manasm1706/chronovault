@@ -1,6 +1,7 @@
 package com.example.chronovault.data.remote.firebase
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldPath
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -53,14 +54,42 @@ class FirebaseUserService {
 
     suspend fun searchUsers(query: String): Result<List<Map<String, Any>>> {
         return try {
+            val normalized = query.trim()
+            if (normalized.isBlank()) return Result.success(emptyList())
+
             val docs = db.collection(usersCollection)
-                .orderBy("name")
-                .startAt(query)
-                .endAt(query + "\uf8ff")
+                .whereGreaterThanOrEqualTo("name", normalized)
+                .whereLessThanOrEqualTo("name", normalized + "\uf8ff")
                 .get()
                 .await()
 
             Result.success(docs.documents.map { it.data?.plus("id" to it.id) ?: emptyMap() })
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getUsersByIds(userIds: List<String>): Result<List<Map<String, Any>>> {
+        return try {
+            val normalized = userIds.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+            if (normalized.isEmpty()) return Result.success(emptyList())
+
+            val docs = normalized
+                .chunked(10)
+                .flatMap { chunk ->
+                    db.collection(usersCollection)
+                        .whereIn(FieldPath.documentId(), chunk)
+                        .get()
+                        .await()
+                        .documents
+                }
+
+            val merged = linkedMapOf<String, Map<String, Any>>()
+            docs.forEach { doc ->
+                merged[doc.id] = doc.data?.plus("id" to doc.id) ?: emptyMap()
+            }
+
+            Result.success(merged.values.toList())
         } catch (e: Exception) {
             Result.failure(e)
         }

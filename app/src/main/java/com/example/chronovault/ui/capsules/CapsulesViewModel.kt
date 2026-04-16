@@ -13,6 +13,7 @@ import com.example.chronovault.data.local.entity.CapsuleEntity
 import com.example.chronovault.data.repository.CapsuleRepository
 import com.example.chronovault.ui.common.LoadingState
 import com.example.chronovault.utils.ImageConverter
+import com.example.chronovault.utils.NotificationHelper
 import com.example.chronovault.utils.PreferencesManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -70,6 +71,9 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
     private val _canShare = MutableLiveData<Boolean>(false)
     val canShare: LiveData<Boolean> = _canShare
 
+    private val _isPublic = MutableLiveData<Boolean>(false)
+    val isPublic: LiveData<Boolean> = _isPublic
+
     init {
         loadCapsules()
     }
@@ -109,6 +113,18 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
                     }
                     FilterType.SHARED -> {
                         capsuleRepository.getSharedCapsules(userId).collect { capsules ->
+                            _capsulesList.value = capsules
+                            _loadingState.value = LoadingState.Success
+                        }
+                    }
+                    FilterType.PERSONAL -> {
+                        capsuleRepository.getUserCapsules(userId).collect { capsules ->
+                            _capsulesList.value = capsules.filter { it.ownerId == userId }
+                            _loadingState.value = LoadingState.Success
+                        }
+                    }
+                    FilterType.PUBLIC -> {
+                        capsuleRepository.getPublicCapsules().collect { capsules ->
                             _capsulesList.value = capsules
                             _loadingState.value = LoadingState.Success
                         }
@@ -170,6 +186,10 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
         _canShare.value = enabled
     }
 
+    fun setPublic(enabled: Boolean) {
+        _isPublic.value = enabled
+    }
+
     fun createCapsule() {
         val title = _capsuleTitle.value.orEmpty().trim()
         val message = _capsuleMessage.value.orEmpty().trim()
@@ -203,6 +223,7 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
                 val isTimeBased = _isTimeBased.value ?: false
                 val hasUnlockMethod = isLocBased || isTimeBased
                 val startsUnlocked = !hasUnlockMethod
+                val isPublicCapsule = _isPublic.value ?: false
                 val capsule = CapsuleEntity(
                     id = capsuleId,
                     title = title,
@@ -218,6 +239,8 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
                     isLocationBased = isLocBased,
                     isTimeBased = isTimeBased,
                     ownerId = userId,
+                    isPublic = isPublicCapsule,
+                    sharedWith = if (isPublicCapsule) emptyList() else emptyList(),
                     canBeShared = _canShare.value ?: false
                 )
 
@@ -227,20 +250,25 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
 
                 // Sync to Firebase
                 val firebaseData = mapOf(
+                    "id" to capsuleId,
                     "title" to title,
                     "message" to message,
                     "imageBase64" to (_capsuleImageBase64.value ?: ""),
                     "latitude" to latitude,
                     "longitude" to longitude,
+                    "createdAt" to capsule.createdAt,
                     "unlockTime" to (_unlockDate.value ?: 0),
                     "isLocationBased" to (_isLocationBased.value ?: false),
                     "isTimeBased" to (_isTimeBased.value ?: false),
                     // FIX: 15
                     "isUnlocked" to startsUnlocked,
+                    "isPublic" to isPublicCapsule,
+                    "sharedWith" to if (isPublicCapsule) emptyList<String>() else emptyList<String>(),
                     "canBeShared" to (_canShare.value ?: false)
                 )
 
                 capsuleRepository.createCapsuleOnFirebase(firebaseData).onSuccess {
+                    NotificationHelper.sendCapsuleCreatedNotification(getApplication())
                     _createCapsuleState.value = CreateCapsuleState.Success(capsuleId)
                     resetCreateForm()
                     loadCapsules()
@@ -305,6 +333,7 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
         _unlockDate.value = null
         _isLocationBased.value = false
         _isTimeBased.value = false
+        _isPublic.value = false
         _canShare.value = false
     }
 
@@ -320,7 +349,7 @@ class CapsulesViewModel(application: Application) : AndroidViewModel(application
 }
 
 enum class FilterType {
-    ALL, LOCKED, UNLOCKED, SHARED
+    ALL, LOCKED, UNLOCKED, SHARED, PERSONAL, PUBLIC
 }
 
 

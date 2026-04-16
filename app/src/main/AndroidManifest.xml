@@ -13,6 +13,8 @@
 
     <!-- Camera & Storage Permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
@@ -84,9 +86,9 @@
             android:label="@string/title_capsule_details"
             android:theme="@style/Theme.ChronoVault" />
 
-        <!-- Custom Firebase Messaging Service -->
+        <!-- Firebase Messaging Service -->
         <service
-            android:name=".services.ChronoVaultMessagingService"
+            android:name=".services.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

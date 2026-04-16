@@ -8,12 +8,16 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.chronovault.R
+import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.data.local.entity.CapsuleEntity
 import com.example.chronovault.databinding.FragmentChatBinding
 import com.example.chronovault.ui.capsules.CapsuleDetailsActivity
 import com.example.chronovault.ui.common.LoadingState
+import kotlinx.coroutines.launch
 
 class ChatFragment : Fragment() {
 
@@ -21,6 +25,7 @@ class ChatFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: ChatViewModel by viewModels()
     private lateinit var adapter: ChatMessagesAdapter
+    private val userRepository by lazy { ServiceLocator.provideUserRepository(requireContext()) }
 
     private var otherUserId: String = ""
     private var chatIdArg: String = ""
@@ -43,8 +48,15 @@ class ChatFragment : Fragment() {
             return
         }
 
-        if (otherUserId.isNotBlank()) {
-            binding.tvChatTitle.text = otherUserId
+        binding.btnBack.setOnClickListener {
+            val navController = findNavController()
+            val navigatedUp = navController.navigateUp()
+            if (!navigatedUp) {
+                navController.popBackStack(R.id.chatListFragment, false)
+                if (navController.currentDestination?.id != R.id.chatListFragment) {
+                    navController.navigate(R.id.chatListFragment)
+                }
+            }
         }
 
         adapter = ChatMessagesAdapter(
@@ -53,7 +65,8 @@ class ChatFragment : Fragment() {
                 startActivity(Intent(requireContext(), CapsuleDetailsActivity::class.java).apply {
                     putExtra("capsule_id", capsuleId)
                 })
-            }
+            },
+            onMessageLongPress = { message -> showMessageActions(message) }
         )
         val lm = LinearLayoutManager(requireContext())
         binding.rvMessages.layoutManager = lm
@@ -95,14 +108,65 @@ class ChatFragment : Fragment() {
             binding.progressChat.visibility = if (state == LoadingState.Loading) View.VISIBLE else View.GONE
         }
 
+        resolveChatHeaderName()
+
         viewModel.startChat(otherUserId = otherUserId, chatId = chatIdArg)
+    }
+
+    private fun resolveChatHeaderName() {
+        val targetUserId = otherUserId.ifBlank {
+            chatIdArg.split("_").firstOrNull { it != viewModel.getCurrentUserId() }.orEmpty()
+        }
+        if (targetUserId.isBlank()) return
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val profile = userRepository.getUsersByIds(listOf(targetUserId)).getOrNull()?.firstOrNull()
+            val name = profile?.get("name")?.toString().orEmpty().ifBlank { targetUserId }
+            binding.tvChatTitle.text = name
+            binding.tvChatSubtitle.text = profile?.get("email")?.toString().orEmpty().ifBlank { targetUserId }
+        }
+    }
+
+    private fun showMessageActions(message: ChatMessage) {
+        val options = mutableListOf<String>()
+        val editable = message.senderId == viewModel.getCurrentUserId() && !message.isDeleted
+        if (editable) options.add(getString(R.string.chat_edit_message))
+        if (editable) options.add(getString(R.string.chat_delete_message))
+
+        if (options.isEmpty()) return
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.chat_message_actions))
+            .setItems(options.toTypedArray()) { _, which ->
+                when (options[which]) {
+                    getString(R.string.chat_edit_message) -> showEditMessageDialog(message)
+                    getString(R.string.chat_delete_message) -> viewModel.deleteMessage(message.messageId)
+                }
+            }
+            .setNegativeButton(R.string.dismiss, null)
+            .show()
+    }
+
+    private fun showEditMessageDialog(message: ChatMessage) {
+        val input = android.widget.EditText(requireContext()).apply {
+            setText(message.text)
+            setSelection(message.text.length)
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.chat_edit_message)
+            .setView(input)
+            .setPositiveButton(R.string.confirm) { _, _ ->
+                viewModel.editMessage(message.messageId, input.text?.toString().orEmpty())
+            }
+            .setNegativeButton(R.string.dismiss, null)
+            .show()
     }
 
     override fun onResume() {
         super.onResume()
         val chatId = chatIdArg.ifBlank {
             val current = viewModel.getCurrentUserId()
-            if (current.isBlank() || otherUserId.isBlank()) "" else "${listOf(current, otherUserId).sorted().joinToString("_")}"
+            if (current.isBlank() || otherUserId.isBlank()) "" else listOf(current, otherUserId).sorted().joinToString("_")
         }
         if (chatId.isNotBlank()) {
             chatIdArg = chatId

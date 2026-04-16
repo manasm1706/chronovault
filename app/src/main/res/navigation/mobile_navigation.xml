@@ -60,7 +60,17 @@
         android:id="@+id/navigation_profile"
         android:name="com.example.chronovault.ui.profile.ProfileFragment"
         android:label="@string/title_profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_profile_to_myCapsuleComments"
+            app:destination="@id/myCapsuleCommentsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/myCapsuleCommentsFragment"
+        android:name="com.example.chronovault.ui.profile.MyCapsuleCommentsFragment"
+        android:label="@string/profile_my_capsule_comments"
+        tools:layout="@layout/fragment_my_capsule_comments" />
 
     <fragment
         android:id="@+id/chatListFragment"

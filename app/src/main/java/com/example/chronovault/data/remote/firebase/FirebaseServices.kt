@@ -1,7 +1,9 @@
 package com.example.chronovault.data.remote.firebase
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -42,6 +44,15 @@ class FirebaseAuthService {
         }
     }
 
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        return try {
+            firebaseAuth.sendPasswordResetEmail(email).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     fun logoutUser() {
         firebaseAuth.signOut()
     }
@@ -71,14 +82,33 @@ class FirestoreCapsuleService {
         return try {
             // FIX: 15
             val initialUnlocked = capsuleData["isUnlocked"] as? Boolean ?: false
-            val docRef = db.collection(capsuleCollection).add(
+            val providedId = (capsuleData["id"] as? String).orEmpty()
+            val capsuleId = if (providedId.isNotBlank()) providedId else db.collection(capsuleCollection).document().id
+
+            db.collection(capsuleCollection).document(capsuleId).set(
                 capsuleData.toMutableMap().apply {
+                    this["id"] = capsuleId
+                    this["clientId"] = capsuleId
                     this["ownerId"] = userId
-                    this["createdAt"] = System.currentTimeMillis()
+                    this["createdAt"] = this["createdAt"] ?: System.currentTimeMillis()
                     this["isUnlocked"] = initialUnlocked
+                    this["isPublic"] = (capsuleData["isPublic"] as? Boolean) ?: false
                 }
             ).await()
-            Result.success(docRef.id)
+
+            Result.success(capsuleId)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getPublicCapsules(): Result<List<Map<String, Any>>> {
+        return try {
+            val docs = db.collection(capsuleCollection)
+                .whereEqualTo("isPublic", true)
+                .get()
+                .await()
+            Result.success(docs.documents.map { it.data?.plus("id" to it.id) ?: emptyMap() })
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -190,10 +220,10 @@ class FirebaseSharingService {
 
     private val db = FirebaseFirestore.getInstance()
 
-    suspend fun shareCapsule(capsuleId: String, sharedWithEmail: String): Result<Unit> {
+    suspend fun shareCapsule(capsuleId: String, sharedWithUserId: String): Result<Unit> {
         return try {
             db.collection("capsules").document(capsuleId).update(
-                "sharedWith", com.google.firebase.firestore.FieldValue.arrayUnion(sharedWithEmail)
+                "sharedWith", com.google.firebase.firestore.FieldValue.arrayUnion(sharedWithUserId)
             ).await()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -201,10 +231,10 @@ class FirebaseSharingService {
         }
     }
 
-    suspend fun removeCapsuleSharing(capsuleId: String, email: String): Result<Unit> {
+    suspend fun removeCapsuleSharing(capsuleId: String, userId: String): Result<Unit> {
         return try {
             db.collection("capsules").document(capsuleId).update(
-                "sharedWith", com.google.firebase.firestore.FieldValue.arrayRemove(email)
+                "sharedWith", com.google.firebase.firestore.FieldValue.arrayRemove(userId)
             ).await()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -212,10 +242,19 @@ class FirebaseSharingService {
         }
     }
 
-    suspend fun getSharedWithMeCapsules(userEmail: String): Result<List<Map<String, Any>>> {
+    suspend fun setCapsulePublicState(capsuleId: String, isPublic: Boolean): Result<Unit> {
+        return try {
+            db.collection("capsules").document(capsuleId).update("isPublic", isPublic).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getSharedWithMeCapsules(userId: String): Result<List<Map<String, Any>>> {
         return try {
             val docs = db.collection("capsules")
-                .whereArrayContains("sharedWith", userEmail)
+                .whereArrayContains("sharedWith", userId)
                 .get()
                 .await()
 
@@ -223,6 +262,85 @@ class FirebaseSharingService {
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    suspend fun getSharedWithMeCapsulesForIdentifiers(identifiers: List<String>): Result<List<Map<String, Any>>> {
+        return try {
+            val normalized = identifiers.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+            if (normalized.isEmpty()) return Result.success(emptyList())
+
+            val merged = linkedMapOf<String, Map<String, Any>>()
+            normalized.forEach { identifier ->
+                val docs = db.collection("capsules")
+                    .whereArrayContains("sharedWith", identifier)
+                    .get()
+                    .await()
+                docs.documents.forEach { doc ->
+                    merged[doc.id] = doc.data?.plus("id" to doc.id) ?: emptyMap()
+                }
+            }
+
+            Result.success(merged.values.toList())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun findRemoteCapsuleIdForOwner(
+        ownerId: String,
+        title: String,
+        latitude: Double,
+        longitude: Double,
+        clientId: String
+    ): Result<String?> {
+        return try {
+            val byClientId = db.collection("capsules")
+                .whereEqualTo("ownerId", ownerId)
+                .whereEqualTo("clientId", clientId)
+                .limit(1)
+                .get()
+                .await()
+                .documents
+                .firstOrNull()
+                ?.id
+            if (!byClientId.isNullOrBlank()) return Result.success(byClientId)
+
+            val byShape = db.collection("capsules")
+                .whereEqualTo("ownerId", ownerId)
+                .whereEqualTo("title", title)
+                .whereEqualTo("latitude", latitude)
+                .whereEqualTo("longitude", longitude)
+                .limit(1)
+                .get()
+                .await()
+                .documents
+                .firstOrNull()
+                ?.id
+
+            Result.success(byShape)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    fun observeSharedWithMeCapsules(
+        identifier: String,
+        onUpdate: (List<Map<String, Any>>) -> Unit,
+        onError: (FirebaseFirestoreException) -> Unit
+    ): ListenerRegistration {
+        return db.collection("capsules")
+            .whereArrayContains("sharedWith", identifier)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    onError(error)
+                    return@addSnapshotListener
+                }
+
+                val capsules = snapshot?.documents.orEmpty().map { doc ->
+                    doc.data?.plus("id" to doc.id) ?: emptyMap()
+                }
+                onUpdate(capsules)
+            }
     }
 }
 

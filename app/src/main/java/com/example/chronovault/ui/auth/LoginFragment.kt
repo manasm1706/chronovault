@@ -1,9 +1,12 @@
 package com.example.chronovault.ui.auth
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -12,6 +15,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.chronovault.R
 import com.example.chronovault.databinding.FragmentLoginBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 
 /**
@@ -48,6 +52,10 @@ class LoginFragment : Fragment() {
         binding.tvSignUp.setOnClickListener {
             findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
         }
+
+        binding.tvForgotPassword.setOnClickListener {
+            showForgotPasswordDialog()
+        }
     }
 
     private fun observeViewModel() {
@@ -55,6 +63,10 @@ class LoginFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.loginState.observe(viewLifecycleOwner) { state ->
                     handleLoginState(state)
+                }
+
+                viewModel.resetPasswordState.observe(viewLifecycleOwner) { state ->
+                    handleResetPasswordState(state)
                 }
             }
         }
@@ -85,6 +97,57 @@ class LoginFragment : Fragment() {
                 binding.btnLogin.isEnabled = true
                 binding.tvError.text = state.message
                 binding.tvError.visibility = View.VISIBLE
+                Log.e("APP_ERROR", state.message)
+            }
+        }
+    }
+
+    private fun showForgotPasswordDialog() {
+        val emailInput = EditText(requireContext()).apply {
+            hint = getString(R.string.label_email)
+            setText(binding.etEmail.text?.toString().orEmpty())
+            inputType = android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+            setPadding(48, 24, 48, 24)
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.auth_forgot_password)
+            .setView(emailInput)
+            .setPositiveButton(R.string.auth_send_reset_link) { _, _ ->
+                viewModel.sendPasswordResetEmail(emailInput.text?.toString().orEmpty())
+            }
+            .setNegativeButton(R.string.button_cancel, null)
+            .show()
+    }
+
+    private fun handleResetPasswordState(state: ResetPasswordState) {
+        when (state) {
+            ResetPasswordState.Idle -> {
+                binding.tvForgotPassword.isEnabled = true
+            }
+
+            ResetPasswordState.Loading -> {
+                binding.progressLogin.visibility = View.VISIBLE
+                binding.btnLogin.isEnabled = false
+                binding.tvForgotPassword.isEnabled = false
+            }
+
+            is ResetPasswordState.Success -> {
+                binding.progressLogin.visibility = View.GONE
+                binding.btnLogin.isEnabled = true
+                binding.tvForgotPassword.isEnabled = true
+                Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
+                viewModel.resetPasswordResetState()
+            }
+
+            is ResetPasswordState.Error -> {
+                binding.progressLogin.visibility = View.GONE
+                binding.btnLogin.isEnabled = true
+                binding.tvForgotPassword.isEnabled = true
+                binding.tvError.text = state.message
+                binding.tvError.visibility = View.VISIBLE
+                Log.e("APP_ERROR", state.message)
+                viewModel.resetPasswordResetState()
             }
         }
     }

@@ -3,9 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="14dp"
-    app:cardElevation="2dp">
+    android:layout_marginStart="12dp"
+    android:layout_marginTop="6dp"
+    android:layout_marginEnd="12dp"
+    android:layout_marginBottom="6dp"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="?attr/colorSurface">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,29 +18,92 @@
         android:orientation="vertical"
         android:padding="12dp">
 
-        <TextView
-            android:id="@+id/tv_friend_name"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.ChronoVault.TitleMedium" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/tv_last_message"
+            <ImageView
+                android:id="@+id/iv_chat_avatar"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/avatar_background"
+                android:contentDescription="@string/profile_friend_id_hint"
+                android:padding="8dp"
+                android:src="@drawable/ic_profile"
+                app:tint="?attr/colorPrimary" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_friend_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textAppearance="@style/TextAppearance.ChronoVault.TitleMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_chat_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_last_message"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
+                        android:textColor="?attr/colorOnSurface" />
+
+                    <TextView
+                        android:id="@+id/tv_unread_badge"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:background="@drawable/bg_notification_dot"
+                        android:gravity="center"
+                        android:text=""
+                        android:textColor="@android:color/white"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
-            android:textColor="?attr/colorOnSurfaceVariant" />
-
-        <TextView
-            android:id="@+id/tv_chat_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+            android:layout_height="1dp"
+            android:layout_marginTop="10dp"
+            android:background="?attr/colorOutline" />
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

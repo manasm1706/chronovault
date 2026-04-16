@@ -2,6 +2,7 @@ package com.example.chronovault.ui.onboarding
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
@@ -35,17 +36,17 @@ class OnboardingActivity : AppCompatActivity() {
             OnboardingPage(
                 com.example.chronovault.R.string.onboard_title_1,
                 com.example.chronovault.R.string.onboard_desc_1,
-                com.example.chronovault.R.drawable.splash_gradient
+                com.example.chronovault.R.drawable.bg_onboarding_gradient
             ),
             OnboardingPage(
                 com.example.chronovault.R.string.onboard_title_2,
                 com.example.chronovault.R.string.onboard_desc_2,
-                com.example.chronovault.R.drawable.splash_gradient
+                com.example.chronovault.R.drawable.bg_onboarding_gradient
             ),
             OnboardingPage(
                 com.example.chronovault.R.string.onboard_title_3,
                 com.example.chronovault.R.string.onboard_desc_3,
-                com.example.chronovault.R.drawable.splash_gradient
+                com.example.chronovault.R.drawable.bg_onboarding_gradient
             )
         )
 
@@ -70,7 +71,25 @@ class OnboardingActivity : AppCompatActivity() {
             }
         }
 
+        applyPressFeedback(binding.btnNext)
+        applyPressFeedback(binding.btnSkip)
+
         updateButtons(0, pages.size)
+    }
+
+    private fun applyPressFeedback(view: View) {
+        view.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    v.animate().scaleX(0.97f).scaleY(0.97f).setDuration(90L).start()
+                }
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_CANCEL -> {
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(90L).start()
+                }
+            }
+            false
+        }
     }
 
     private fun updateButtons(position: Int, total: Int) {

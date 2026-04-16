@@ -12,8 +12,8 @@ import com.example.chronovault.databinding.ItemSharedWithBinding
  * Allows owner to remove individual shares
  */
 class SharedWithAdapter(
-    private val onRemoveClick: (String) -> Unit
-) : ListAdapter<String, SharedWithAdapter.SharedWithViewHolder>(StringDiffCallback()) {
+    private val onRemoveClick: (SharedUserItem) -> Unit
+) : ListAdapter<SharedUserItem, SharedWithAdapter.SharedWithViewHolder>(ItemDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SharedWithViewHolder {
         val binding = ItemSharedWithBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -26,18 +26,25 @@ class SharedWithAdapter(
 
     class SharedWithViewHolder(
         private val binding: ItemSharedWithBinding,
-        private val onRemoveClick: (String) -> Unit
+        private val onRemoveClick: (SharedUserItem) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(email: String) {
-            binding.tvSharedEmail.text = email
-            binding.btnRemoveShare.setOnClickListener { onRemoveClick(email) }
+        fun bind(user: SharedUserItem) {
+            binding.tvSharedEmail.text = user.displayName
+            binding.tvSharedSubtitle.text = user.subtitle
+            binding.btnRemoveShare.setOnClickListener { onRemoveClick(user) }
         }
     }
 
-    class StringDiffCallback : DiffUtil.ItemCallback<String>() {
-        override fun areItemsTheSame(oldItem: String, newItem: String) = oldItem == newItem
-        override fun areContentsTheSame(oldItem: String, newItem: String) = oldItem == newItem
+    class ItemDiffCallback : DiffUtil.ItemCallback<SharedUserItem>() {
+        override fun areItemsTheSame(oldItem: SharedUserItem, newItem: SharedUserItem) = oldItem.userId == newItem.userId
+        override fun areContentsTheSame(oldItem: SharedUserItem, newItem: SharedUserItem) = oldItem == newItem
     }
 }
+
+data class SharedUserItem(
+    val userId: String,
+    val displayName: String,
+    val subtitle: String
+)
 

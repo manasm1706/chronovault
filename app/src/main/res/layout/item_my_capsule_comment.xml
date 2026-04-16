@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tv_capsule_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.ChronoVault.TitleMedium"
+            tools:text="Trip to hills" />
+
+        <TextView
+            android:id="@+id/tv_comment_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textAppearance="@style/TextAppearance.ChronoVault.BodyMedium"
+            tools:text="This memory is beautiful." />
+
+        <TextView
+            android:id="@+id/tv_comment_meta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textAppearance="@style/TextAppearance.ChronoVault.LabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="manas • 11 Apr 2026, 14:30" />
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
+
+

@@ -1,10 +1,11 @@
 package com.example.chronovault.services
 
-import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.location.Location
 import android.os.Build
 import android.os.IBinder
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.chronovault.R
@@ -26,8 +27,26 @@ class ForegroundLocationService : Service() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
+    private var lastProcessedLocation: Location? = null
+    private var lastProcessedAt: Long = 0L
+    private var isLocationUpdatesActive: Boolean = false
+    private val locationRequest: LocationRequest by lazy {
+        LocationRequest.Builder(
+            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+            20_000L
+        )
+            .setMinUpdateIntervalMillis(15_000L)
+            .setMinUpdateDistanceMeters(20f)
+            .setWaitForAccurateLocation(false)
+            .build()
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (ServiceManager.isLocationServiceRunning) {
+            Log.d("SERVICE_DEBUG", "ForegroundLocationService already active")
+            return START_STICKY
+        }
+
         if (!GooglePlayServicesGuard.warnIfUnavailable(this, TAG)) {
             stopSelf()
             return START_NOT_STICKY
@@ -38,6 +57,8 @@ class ForegroundLocationService : Service() {
         NotificationHelper.createNotificationChannel(this)
 
         // Start foreground service
+        ServiceManager.isLocationServiceRunning = true
+        Log.d("SERVICE_DEBUG", "ForegroundLocationService started")
         startForegroundLocationUpdates()
 
         return START_STICKY
@@ -53,30 +74,40 @@ class ForegroundLocationService : Service() {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForeground(NOTIFICATION_ID, notification)
         }
-
-        // Request location updates
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_LOW_POWER, 30000).build()
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 for (location in locationResult.locations) {
+                    if (!shouldProcessLocation(location)) {
+                        continue
+                    }
+                    Log.d("LOCATION_DEBUG", "Location update triggered")
                     Log.d(TAG, "Location: ${location.latitude}, ${location.longitude}")
-                    // Process location
                     processLocation(location.latitude, location.longitude)
+                    lastProcessedLocation = location
+                    lastProcessedAt = System.currentTimeMillis()
                 }
             }
         }
 
+        startLocationUpdates()
+    }
+
+    private fun startLocationUpdates() {
+        if (isLocationUpdatesActive) return
+
         try {
+            Log.d("LOCATION_DEBUG", "Requesting location update")
             @Suppress("MissingPermission")
             fusedLocationClient.requestLocationUpdates(
                 locationRequest,
                 locationCallback,
-                null
+                Looper.getMainLooper()
             )
+            isLocationUpdatesActive = true
         } catch (e: SecurityException) {
             Log.w(TAG, "Security exception requesting location updates", e)
         } catch (e: Exception) {
@@ -89,9 +120,22 @@ class ForegroundLocationService : Service() {
         // Handle location processing here
     }
 
+    private fun shouldProcessLocation(location: Location): Boolean {
+        val now = System.currentTimeMillis()
+        if (now - lastProcessedAt < 20_000L) {
+            return false
+        }
+        val previous = lastProcessedLocation ?: return true
+        val distance = previous.distanceTo(location)
+        return distance >= 20f
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        fusedLocationClient.removeLocationUpdates(locationCallback)
+        runCatching { fusedLocationClient.removeLocationUpdates(locationCallback) }
+        isLocationUpdatesActive = false
+        ServiceManager.isLocationServiceRunning = false
+        Log.d("SERVICE_DEBUG", "ForegroundLocationService stopped")
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
 

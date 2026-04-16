@@ -30,22 +30,33 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/button_cancel"
                 android:src="@drawable/ic_arrow_back_24"
-                android:tint="?attr/colorOnSurface"
+                app:tint="?attr/colorOnSurface"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <!-- Title -->
+            <com.example.chronovault.utils.ThemedLogoImageView
+                android:id="@+id/iv_signup_logo"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_marginTop="@dimen/spacing_md"
+                android:contentDescription="@string/app_name"
+                android:scaleType="fitCenter"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btn_back" />
+
             <TextView
                 android:id="@+id/tv_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/spacing_lg"
-                android:layout_marginTop="@dimen/spacing_xl"
+                android:layout_marginTop="@dimen/spacing_md"
                 android:text="@string/title_signup"
                 android:textAppearance="@style/TextAppearance.ChronoVault.HeadlineSmall"
                 android:textColor="?attr/colorPrimary"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/btn_back" />
+                app:layout_constraintTop_toBottomOf="@id/iv_signup_logo" />
 
             <!-- Name Field -->
             <com.google.android.material.textfield.TextInputLayout
@@ -200,6 +211,10 @@
                 android:layout_marginStart="@dimen/spacing_lg"
                 android:layout_marginTop="@dimen/spacing_lg"
                 android:layout_marginEnd="@dimen/spacing_lg"
+                android:background="?attr/colorSurface"
+                android:ellipsize="end"
+                android:maxLines="4"
+                android:padding="@dimen/spacing_sm"
                 android:text=""
                 android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
                 android:textColor="?attr/colorError"

@@ -27,5 +27,32 @@ interface CommentDao {
 
     @Query("SELECT COUNT(*) FROM comments WHERE capsuleId = :capsuleId")
     suspend fun getCommentCount(capsuleId: String): Int
+
+    @Query(
+        """
+        SELECT comments.id AS id,
+               comments.capsuleId AS capsuleId,
+               comments.authorId AS authorId,
+               comments.authorName AS authorName,
+               comments.text AS text,
+               comments.createdAt AS createdAt,
+               capsules.title AS capsuleTitle
+        FROM comments
+        INNER JOIN capsules ON comments.capsuleId = capsules.id
+        WHERE capsules.ownerId = :ownerId
+        ORDER BY comments.createdAt DESC
+        """
+    )
+    fun getCommentsForCapsuleOwner(ownerId: String): Flow<List<OwnerCapsuleCommentItem>>
 }
+
+data class OwnerCapsuleCommentItem(
+    val id: String,
+    val capsuleId: String,
+    val authorId: String,
+    val authorName: String,
+    val text: String,
+    val createdAt: Long,
+    val capsuleTitle: String
+)
 

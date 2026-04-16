@@ -1,9 +1,12 @@
 package com.example.chronovault.ui.chat
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -30,13 +33,39 @@ class ChatListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        adapter = ChatListAdapter { chat -> viewModel.openChat(chat) }
+        parentFragmentManager.setFragmentResultListener(NewChatBottomSheet.RESULT_KEY, viewLifecycleOwner) { _, bundle ->
+            val userId = bundle.getString(NewChatBottomSheet.RESULT_USER_ID).orEmpty()
+            if (userId.isNotBlank()) {
+                viewModel.startChat(userId)
+            }
+        }
+
+        adapter = ChatListAdapter(
+            currentUserId = viewModel.getCurrentUserId(),
+            onChatClick = { chat -> viewModel.openChat(chat) }
+        )
         binding.rvChats.layoutManager = LinearLayoutManager(requireContext())
         binding.rvChats.adapter = adapter
 
-        viewModel.chats.observe(viewLifecycleOwner) { chats ->
+        binding.etSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: Editable?) {
+                viewModel.setSearchQuery(s?.toString().orEmpty())
+            }
+        })
+
+        binding.fabNewChat.setOnClickListener {
+            NewChatBottomSheet().show(parentFragmentManager, "new_chat_sheet")
+        }
+        binding.btnEmptyNewChat.setOnClickListener {
+            NewChatBottomSheet().show(parentFragmentManager, "new_chat_sheet")
+        }
+
+        viewModel.filteredChats.observe(viewLifecycleOwner) { chats ->
             adapter.submitList(chats)
-            binding.tvEmptyChats.visibility = if (chats.isEmpty()) View.VISIBLE else View.GONE
+            val shouldShowEmpty = chats.isEmpty() && binding.etSearch.text?.isBlank() == true
+            binding.layoutEmptyChats.visibility = if (shouldShowEmpty) View.VISIBLE else View.GONE
         }
 
         viewModel.openChatEvent.observe(viewLifecycleOwner) { chat ->
@@ -53,6 +82,14 @@ class ChatListFragment : Fragment() {
 
         viewModel.loadingState.observe(viewLifecycleOwner) { state ->
             binding.progressChats.visibility = if (state == LoadingState.Loading) View.VISIBLE else View.GONE
+            if (state is LoadingState.Error) {
+                val uiMessage = if (state.message.contains("permission", ignoreCase = true)) {
+                    "Chat sync failed. Check permissions."
+                } else {
+                    state.message
+                }
+                Toast.makeText(requireContext(), uiMessage, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

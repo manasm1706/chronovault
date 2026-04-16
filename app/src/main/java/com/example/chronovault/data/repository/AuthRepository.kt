@@ -55,6 +55,11 @@ class AuthRepository(
         }
     }
 
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        val normalizedEmail = normalizeEmail(email)
+        return firebaseAuthService.sendPasswordResetEmail(normalizedEmail)
+    }
+
     fun logoutUser() {
         firebaseAuthService.logoutUser()
         preferencesManager.setLoggedIn(false)

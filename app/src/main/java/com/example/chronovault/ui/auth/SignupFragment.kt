@@ -57,6 +57,10 @@ class SignupFragment : Fragment() {
         }
 
         binding.btnSignup.setOnClickListener {
+            viewModel.setName(binding.etName.text?.toString().orEmpty())
+            viewModel.setEmail(binding.etEmail.text?.toString().orEmpty())
+            viewModel.setPassword(binding.etPassword.text?.toString().orEmpty())
+            viewModel.setConfirmPassword(binding.etConfirmPassword.text?.toString().orEmpty())
             viewModel.signup()
         }
 

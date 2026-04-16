@@ -38,6 +38,10 @@ class UserRepository(
         return firebaseUserService.searchUsers(query)
     }
 
+    suspend fun getUsersByIds(userIds: List<String>): Result<List<Map<String, Any>>> {
+        return firebaseUserService.getUsersByIds(userIds)
+    }
+
     suspend fun deleteAccount(): Result<Unit> {
         val userId = preferencesManager.getUserId() ?: return Result.failure(Exception("User not authenticated"))
         return firebaseUserService.deleteUser(userId).onSuccess {

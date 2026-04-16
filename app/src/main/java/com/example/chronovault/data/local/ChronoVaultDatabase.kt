@@ -16,7 +16,7 @@ import com.example.chronovault.data.local.entity.NotificationEntity
  */
 @Database(
     entities = [CapsuleEntity::class, CommentEntity::class, NotificationEntity::class, FriendEntity::class],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -84,6 +84,12 @@ abstract class ChronoVaultDatabase : RoomDatabase() {
                     )
                     """.trimIndent()
                 )
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE capsules ADD COLUMN isPublic INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

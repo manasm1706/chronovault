@@ -46,13 +46,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="4dp"
+                android:ellipsize="end"
                 android:fontFamily="monospace"
                 android:includeFontPadding="false"
                 android:lineSpacingExtra="2dp"
+                android:maxLines="2"
                 android:text="@string/capsule_countdown_placeholder"
                 android:textAlignment="viewStart"
                 android:textColor="?attr/colorPrimary"
-                android:textSize="32sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
 

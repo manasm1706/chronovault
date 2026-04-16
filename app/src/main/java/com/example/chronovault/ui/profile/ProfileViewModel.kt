@@ -3,6 +3,7 @@ package com.example.chronovault.ui.profile
 import android.app.Application
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -45,8 +46,14 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private val _friends = MutableLiveData<List<FriendEntity>>(emptyList())
     val friends: LiveData<List<FriendEntity>> = _friends
 
+    private val _friendDisplayItems = MutableLiveData<List<FriendDisplayItem>>(emptyList())
+    val friendDisplayItems: LiveData<List<FriendDisplayItem>> = _friendDisplayItems
+
     private val _friendRequests = MutableLiveData<List<FriendRepository.FriendRequest>>(emptyList())
     val friendRequests: LiveData<List<FriendRepository.FriendRequest>> = _friendRequests
+
+    private val _friendRequestDisplayItems = MutableLiveData<List<FriendRequestDisplayItem>>(emptyList())
+    val friendRequestDisplayItems: LiveData<List<FriendRequestDisplayItem>> = _friendRequestDisplayItems
 
     private val _totalCapsules = MutableLiveData<Int>(0)
     val totalCapsules: LiveData<Int> = _totalCapsules
@@ -63,6 +70,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     init {
         loadUserProfile()
         observeFriends()
+        observeAcceptedFriendsRemote()
         observeFriendRequests()
     }
 
@@ -189,7 +197,30 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             friendRepository.observeFriends().collectLatest { friendList ->
                 _friends.value = friendList
+                val ids = friendList.map { it.friendUserId }.distinct()
+                val profiles = userRepository.getUsersByIds(ids).getOrDefault(emptyList())
+                    .associateBy { (it["id"] as? String).orEmpty() }
+                _friendDisplayItems.value = friendList.map { friend ->
+                    val profile = profiles[friend.friendUserId]
+                    FriendDisplayItem(
+                        friend = friend,
+                        name = (profile?.get("name") as? String).orEmpty().ifBlank { friend.friendUserId },
+                        subtitle = when (friend.status) {
+                            com.example.chronovault.data.local.entity.FriendStatus.ACCEPTED -> "Accepted"
+                            else -> "Pending"
+                        }
+                    )
+                }
             }
+        }
+    }
+
+    private fun observeAcceptedFriendsRemote() {
+        viewModelScope.launch {
+            runCatching { friendRepository.syncAcceptedFriends() }
+                .onFailure { error ->
+                    Log.e("APP_ERROR", "Failed syncing accepted friends: ${error.message}", error)
+                }
         }
     }
 
@@ -201,8 +232,25 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     _accountState.value = AccountState.Success("Friend request sent")
                 }
                 .onFailure { error ->
-                    _accountState.value = AccountState.Error(error.message ?: "Failed to send request")
+                    Log.e("APP_ERROR", "Friend request failed: ${error.message}", error)
+                    _accountState.value = AccountState.Error(mapFriendRequestError(error))
                 }
+        }
+    }
+
+    private fun mapFriendRequestError(error: Throwable): String {
+        val raw = error.message.orEmpty()
+        return when {
+            raw.contains("PERMISSION_DENIED", ignoreCase = true) ||
+                raw.contains("insufficient permissions", ignoreCase = true) -> {
+                "Unable to send request. Please try again."
+            }
+
+            raw.contains("does not exist", ignoreCase = true) -> "User not found"
+            raw.contains("already pending", ignoreCase = true) -> "A request is already pending"
+            raw.contains("already friends", ignoreCase = true) -> "You are already friends"
+            raw.contains("yourself", ignoreCase = true) -> "You cannot send a request to yourself"
+            else -> "Unable to send request. Please try again."
         }
     }
 
@@ -246,10 +294,33 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             friendRepository.observeIncomingRequests().collectLatest { requests ->
                 _friendRequests.value = requests
+                val ids = requests.map { it.fromUserId }.distinct()
+                val profiles = userRepository.getUsersByIds(ids).getOrDefault(emptyList())
+                    .associateBy { (it["id"] as? String).orEmpty() }
+                _friendRequestDisplayItems.value = requests.map { request ->
+                    val profile = profiles[request.fromUserId]
+                    FriendRequestDisplayItem(
+                        request = request,
+                        name = (profile?.get("name") as? String).orEmpty().ifBlank { request.fromUserId },
+                        subtitle = (profile?.get("email") as? String).orEmpty().ifBlank { request.fromUserId }
+                    )
+                }
             }
         }
     }
 }
+
+data class FriendDisplayItem(
+    val friend: FriendEntity,
+    val name: String,
+    val subtitle: String
+)
+
+data class FriendRequestDisplayItem(
+    val request: FriendRepository.FriendRequest,
+    val name: String,
+    val subtitle: String
+)
 
 sealed class AccountState {
     object Idle : AccountState()

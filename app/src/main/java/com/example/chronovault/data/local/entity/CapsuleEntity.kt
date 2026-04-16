@@ -24,6 +24,7 @@ data class CapsuleEntity(
     val isTimeBased: Boolean = false,
     val ownerId: String,
     val sharedWith: List<String> = emptyList(),
+    val isPublic: Boolean = false,
     val canBeShared: Boolean = false,
     val isSharedWithMe: Boolean = false,
     val isDiscovered: Boolean = false,

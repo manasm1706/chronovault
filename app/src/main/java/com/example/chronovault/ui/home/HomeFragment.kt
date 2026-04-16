@@ -65,6 +65,7 @@ class HomeFragment : Fragment() {
         setupUI()
         animateHomeEntry()
         observeViewModel()
+        viewModel.loadQuote()
         requestLocationPermissionIfNeeded()
     }
 
@@ -163,13 +164,26 @@ class HomeFragment : Fragment() {
             binding.tvGreetingSubtitle.text = subtitle
         }
 
-        viewModel.dailyQuote.observe(viewLifecycleOwner) { quote ->
-            binding.tvQuote.text = getString(R.string.home_quote_wrapped, quote)
+        viewModel.quote.observe(viewLifecycleOwner) { quote ->
+            binding.tvQuote.text = getString(R.string.home_quote_wrapped, quote.q)
+            binding.tvQuoteAuthor.text = getString(R.string.home_quote_author, quote.a)
         }
 
         viewModel.isQuoteRefreshing.observe(viewLifecycleOwner) { refreshing ->
             binding.btnRefreshQuote.isEnabled = !refreshing
             binding.btnRefreshQuote.alpha = if (refreshing) 0.6f else 1f
+            if (refreshing && binding.tvQuote.text.isNullOrBlank()) {
+                binding.tvQuote.text = getString(R.string.home_quote_loading)
+                binding.tvQuoteAuthor.text = ""
+            }
+        }
+
+        viewModel.quoteError.observe(viewLifecycleOwner) { errorText ->
+            if (errorText.isNullOrBlank()) return@observe
+            if (binding.tvQuote.text.isNullOrBlank()) {
+                binding.tvQuote.text = getString(R.string.home_quote_fallback_text)
+                binding.tvQuoteAuthor.text = getString(R.string.home_quote_author, getString(R.string.home_quote_fallback_author))
+            }
         }
 
         viewModel.totalCapsules.observe(viewLifecycleOwner) { count ->

@@ -7,6 +7,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.data.repository.AuthRepository
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import kotlinx.coroutines.launch
 
 /**
@@ -30,6 +33,8 @@ class SignupViewModel(application: Application) : AndroidViewModel(application) 
 
     private val _confirmPassword = MutableLiveData("")
     val confirmPassword: LiveData<String> = _confirmPassword
+
+    private val strongPasswordRegex = Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$")
 
     fun setName(newName: String) {
         _name.value = newName
@@ -79,8 +84,10 @@ class SignupViewModel(application: Application) : AndroidViewModel(application) 
             return
         }
 
-        if (!password.isValidPassword()) {
-            _signupState.value = SignupState.Error("Password must be at least 6 characters")
+        if (!isValidPassword(password)) {
+            _signupState.value = SignupState.Error(
+                "Password must be at least 8 characters and include uppercase, lowercase, number, and special character (e.g. Pass@123)"
+            )
             return
         }
 
@@ -97,18 +104,33 @@ class SignupViewModel(application: Application) : AndroidViewModel(application) 
                     _signupState.value = SignupState.Success(userId)
                 }
                 result.onFailure { exception ->
-                    _signupState.value = SignupState.Error(exception.message ?: "Signup failed")
+                    _signupState.value = SignupState.Error(mapSignupError(exception))
                 }
             }
         }
+    }
+
+    fun isValidPassword(password: String): Boolean {
+        return strongPasswordRegex.matches(password)
     }
 
     private fun String.isValidEmail(): Boolean {
         return this.matches(Regex("^[A-Za-z0-9+_.-]+@(.+)$"))
     }
 
-    private fun String.isValidPassword(): Boolean {
-        return this.length >= 6
+    private fun mapSignupError(exception: Throwable): String {
+        return when (exception) {
+            is FirebaseAuthWeakPasswordException ->
+                "Password is too weak. Use a stronger password like Pass@123"
+
+            is FirebaseAuthUserCollisionException ->
+                "An account with this email already exists"
+
+            is FirebaseAuthInvalidCredentialsException ->
+                "Please enter a valid email address"
+
+            else -> exception.message ?: "Signup failed. Please try again"
+        }
     }
 }
 

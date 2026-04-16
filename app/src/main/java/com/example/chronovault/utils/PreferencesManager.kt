@@ -35,6 +35,9 @@ class PreferencesManager(context: Context) {
         private const val KEY_LOCATION_TRACKING_ENABLED = "location_tracking_enabled"
         private const val KEY_SELECTED_THEME_MODE = "selected_theme_mode"
         private const val KEY_SELECTED_COLOR_SCHEME = "selected_color_scheme"
+        private const val KEY_LAST_QUOTE_TEXT = "last_quote_text"
+        private const val KEY_LAST_QUOTE_AUTHOR = "last_quote_author"
+        private const val KEY_LAST_QUOTE_TIMESTAMP = "last_quote_timestamp"
     }
 
     // User Session
@@ -136,6 +139,30 @@ class PreferencesManager(context: Context) {
         return sharedPreferences.getString(KEY_SELECTED_COLOR_SCHEME, "GREEN") ?: "GREEN"
     }
 
+    fun setLastQuoteText(value: String) {
+        sharedPreferences.edit().putString(KEY_LAST_QUOTE_TEXT, value).apply()
+    }
+
+    fun getLastQuoteText(): String? {
+        return sharedPreferences.getString(KEY_LAST_QUOTE_TEXT, null)
+    }
+
+    fun setLastQuoteAuthor(value: String) {
+        sharedPreferences.edit().putString(KEY_LAST_QUOTE_AUTHOR, value).apply()
+    }
+
+    fun getLastQuoteAuthor(): String? {
+        return sharedPreferences.getString(KEY_LAST_QUOTE_AUTHOR, null)
+    }
+
+    fun setLastQuoteTimestamp(value: Long) {
+        sharedPreferences.edit().putLong(KEY_LAST_QUOTE_TIMESTAMP, value).apply()
+    }
+
+    fun getLastQuoteTimestamp(): Long {
+        return sharedPreferences.getLong(KEY_LAST_QUOTE_TIMESTAMP, 0L)
+    }
+
     // Generic String methods for auth tokens and other data
     fun setString(key: String, value: String) {
         sharedPreferences.edit().putString(key, value).apply()
@@ -152,6 +179,25 @@ class PreferencesManager(context: Context) {
 
     fun isNotificationRead(notificationId: String): Boolean {
         return sharedPreferences.getBoolean("notification_read_$notificationId", false)
+    }
+
+    fun isOneTimeEventMarked(eventKey: String): Boolean {
+        return sharedPreferences.getBoolean("event_once_$eventKey", false)
+    }
+
+    fun markOneTimeEvent(eventKey: String) {
+        sharedPreferences.edit().putBoolean("event_once_$eventKey", true).apply()
+    }
+
+    fun shouldRunCooldownEvent(eventKey: String, cooldownMillis: Long): Boolean {
+        val prefKey = "event_cooldown_$eventKey"
+        val now = System.currentTimeMillis()
+        val lastRun = sharedPreferences.getLong(prefKey, 0L)
+        if (now - lastRun < cooldownMillis) {
+            return false
+        }
+        sharedPreferences.edit().putLong(prefKey, now).apply()
+        return true
     }
 
     // Clear all data (logout)

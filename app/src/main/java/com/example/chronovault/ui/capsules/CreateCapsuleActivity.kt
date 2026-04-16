@@ -133,7 +133,7 @@ class CreateCapsuleActivity : AppCompatActivity() {
         // Try to get a fresh location first, fall back to last known
         val cancellationToken = CancellationTokenSource()
         try {
-            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cancellationToken.token)
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cancellationToken.token)
             .addOnSuccessListener { location ->
                 if (location != null) {
                     Log.d("MAP", "Fresh location -> Lat: ${location.latitude}, Lng: ${location.longitude}")
@@ -212,6 +212,10 @@ class CreateCapsuleActivity : AppCompatActivity() {
             // Shareable toggle
             switchShareable.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.setShareable(isChecked)
+            }
+
+            switchPublicWorld.setOnCheckedChangeListener { _, isChecked ->
+                viewModel.setPublic(isChecked)
             }
 
             // Create button

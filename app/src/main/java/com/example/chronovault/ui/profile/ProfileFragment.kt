@@ -35,6 +35,8 @@ class ProfileFragment : Fragment() {
     private lateinit var friendsAdapter: FriendsAdapter
     private lateinit var friendRequestsAdapter: FriendRequestsAdapter
     private var isInitializingAppearanceControls: Boolean = false
+    private var lastToastMessage: String = ""
+    private var lastToastTime: Long = 0L
 
     private val pickImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -226,12 +228,13 @@ class ProfileFragment : Fragment() {
                     binding.tvUserIdValue.text = id
                 }
 
-                viewModel.friends.observe(viewLifecycleOwner) { friendList ->
+
+                viewModel.friendDisplayItems.observe(viewLifecycleOwner) { friendList ->
                     friendsAdapter.submitList(friendList)
                     binding.tvNoFriends.visibility = if (friendList.isEmpty()) View.VISIBLE else View.GONE
                 }
 
-                viewModel.friendRequests.observe(viewLifecycleOwner) { requests ->
+                viewModel.friendRequestDisplayItems.observe(viewLifecycleOwner) { requests ->
                     friendRequestsAdapter.submitList(requests)
                     binding.tvNoFriendRequests.visibility = if (requests.isEmpty()) View.VISIBLE else View.GONE
                 }
@@ -242,13 +245,22 @@ class ProfileFragment : Fragment() {
 
                 viewModel.loadingState.observe(viewLifecycleOwner) { state ->
                     when (state) {
-                        is LoadingState.Loading -> binding.progressProfile.visibility = View.VISIBLE
-                        LoadingState.Success -> binding.progressProfile.visibility = View.GONE
+                        is LoadingState.Loading -> {
+                            binding.progressProfile.visibility = View.VISIBLE
+                            binding.btnAddFriend.isEnabled = false
+                        }
+                        LoadingState.Success -> {
+                            binding.progressProfile.visibility = View.GONE
+                            binding.btnAddFriend.isEnabled = true
+                        }
                         is LoadingState.Error -> {
                             binding.progressProfile.visibility = View.GONE
+                            binding.btnAddFriend.isEnabled = true
                             showError(state.message)
                         }
-                        LoadingState.Idle -> {}
+                        LoadingState.Idle -> {
+                            binding.btnAddFriend.isEnabled = true
+                        }
                     }
                 }
             }
@@ -277,23 +289,27 @@ class ProfileFragment : Fragment() {
 
     private fun showDeleteConfirmation() {
         android.app.AlertDialog.Builder(requireContext())
-            .setTitle(com.example.chronovault.R.string.profile_delete_account_title)
-            .setMessage(com.example.chronovault.R.string.profile_delete_account_message)
-            .setPositiveButton(com.example.chronovault.R.string.button_delete) { _, _ ->
+            .setTitle(R.string.profile_delete_account_title)
+            .setMessage(R.string.profile_delete_account_message)
+            .setPositiveButton(R.string.button_delete) { _, _ ->
                 viewModel.deleteAccount()
             }
-            .setNegativeButton(com.example.chronovault.R.string.button_cancel, null)
+            .setNegativeButton(R.string.button_cancel, null)
             .show()
     }
 
     private fun copyUserIdToClipboard(userId: String) {
         if (userId.isBlank()) return
         val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText(getString(com.example.chronovault.R.string.profile_user_id_clip_label), userId))
-        showSuccess(getString(com.example.chronovault.R.string.profile_user_id_copied))
+        clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.profile_user_id_clip_label), userId))
+        showSuccess(getString(R.string.profile_user_id_copied))
     }
 
     private fun showError(message: String) {
+        val now = System.currentTimeMillis()
+        if (message == lastToastMessage && now - lastToastTime < 2_000L) return
+        lastToastMessage = message
+        lastToastTime = now
         android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
     }
 

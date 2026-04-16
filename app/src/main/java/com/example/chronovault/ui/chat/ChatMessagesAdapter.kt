@@ -1,13 +1,13 @@
 package com.example.chronovault.ui.chat
 
-import android.view.Gravity
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.chronovault.R
 import com.example.chronovault.databinding.ItemChatMessageBinding
 import com.google.android.material.color.MaterialColors
 import java.text.SimpleDateFormat
@@ -16,12 +16,13 @@ import java.util.Locale
 
 class ChatMessagesAdapter(
     private val currentUserId: String,
-    private val onViewCapsule: (String) -> Unit
+    private val onViewCapsule: (String) -> Unit,
+    private val onMessageLongPress: (ChatMessage) -> Unit
 ) : ListAdapter<ChatMessage, ChatMessagesAdapter.MessageViewHolder>(Diff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
         val binding = ItemChatMessageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return MessageViewHolder(binding, currentUserId, onViewCapsule)
+        return MessageViewHolder(binding, currentUserId, onViewCapsule, onMessageLongPress)
     }
 
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
@@ -31,16 +32,15 @@ class ChatMessagesAdapter(
     class MessageViewHolder(
         private val binding: ItemChatMessageBinding,
         private val currentUserId: String,
-        private val onViewCapsule: (String) -> Unit
+        private val onViewCapsule: (String) -> Unit,
+        private val onMessageLongPress: (ChatMessage) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(message: ChatMessage) {
+            Log.d("CHAT_DEBUG", "Rendering message: ${message.messageId} type=${message.type}")
             val isSender = message.senderId == currentUserId
-            val params = binding.cardMessage.layoutParams as ViewGroup.MarginLayoutParams
-            params.width = ViewGroup.LayoutParams.WRAP_CONTENT
-            if (params is androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) {
-                params.horizontalBias = if (isSender) 1f else 0f
-            }
+            val params = binding.cardMessage.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+            params.horizontalBias = if (isSender) 1f else 0f
             binding.cardMessage.layoutParams = params
 
             val background = if (isSender) {
@@ -56,15 +56,40 @@ class ChatMessagesAdapter(
             binding.cardMessage.setCardBackgroundColor(background)
             binding.tvMessageText.setTextColor(textColor)
 
-            binding.tvMessageText.text = message.text
-            binding.tvMessageTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(message.timestamp))
-
             val isCapsule = message.type == ChatMessageType.CAPSULE && !message.capsuleId.isNullOrBlank()
+            binding.tvMessageText.visibility = if (isCapsule) View.GONE else View.VISIBLE
+            binding.tvMessageText.text = message.text
+            binding.tvEditedLabel.visibility = if (message.isEdited) View.VISIBLE else View.GONE
+            binding.tvDeletedLabel.visibility = if (message.isDeleted) View.VISIBLE else View.GONE
+            binding.tvMessageTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(message.timestamp))
+            binding.tvMessageTime.setTextColor(ColorUtils.setAlphaComponent(textColor, (255 * 0.65f).toInt()))
+            binding.tvEditedLabel.setTextColor(ColorUtils.setAlphaComponent(textColor, (255 * 0.65f).toInt()))
+            binding.tvDeletedLabel.setTextColor(ColorUtils.setAlphaComponent(textColor, (255 * 0.65f).toInt()))
+
             binding.layoutCapsule.visibility = if (isCapsule) View.VISIBLE else View.GONE
             if (isCapsule) {
-                binding.tvCapsuleTitle.text = message.text
+                val normalizedTitle = message.text
+                    .removePrefix("Shared capsule:")
+                    .removePrefix("Shared Capsule:")
+                    .trim()
+                binding.tvCapsuleTitle.text = normalizedTitle.ifBlank { "Shared memory" }
+                binding.tvCapsuleTitle.setTextColor(textColor)
+                binding.tvCapsuleHeader.setTextColor(ColorUtils.setAlphaComponent(textColor, (255 * 0.75f).toInt()))
                 binding.btnViewCapsule.setOnClickListener {
-                    message.capsuleId?.let(onViewCapsule)
+                    onViewCapsule(message.capsuleId)
+                }
+            } else {
+                binding.tvCapsuleTitle.text = ""
+                binding.tvCapsuleHeader.setTextColor(ColorUtils.setAlphaComponent(textColor, (255 * 0.75f).toInt()))
+                binding.btnViewCapsule.setOnClickListener(null)
+            }
+
+            binding.root.setOnLongClickListener {
+                if (isSender) {
+                    onMessageLongPress(message)
+                    true
+                } else {
+                    false
                 }
             }
         }

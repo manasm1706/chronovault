@@ -1,6 +1,6 @@
 package com.example.chronovault.data.remote
 
-import com.example.chronovault.data.remote.api.QuoteApi
+import com.example.chronovault.data.remote.api.QuoteApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
  */
 object RetrofitClient {
 
-    private const val QUOTE_BASE_URL = "https://api.quotable.io/"
+    private const val QUOTE_BASE_URL = "https://zenquotes.io/api/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -30,8 +30,8 @@ object RetrofitClient {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    val quoteApi: QuoteApi by lazy {
-        retrofit.create(QuoteApi::class.java)
+    val quoteApi: QuoteApiService by lazy {
+        retrofit.create(QuoteApiService::class.java)
     }
 }
 

@@ -39,6 +39,12 @@ interface CapsuleDao {
     @Query("SELECT * FROM capsules WHERE isSharedWithMe = 1 AND ownerId != :userId ORDER BY sharedAt DESC")
     fun getSharedCapsules(userId: String): Flow<List<CapsuleEntity>>
 
+    @Query("SELECT * FROM capsules WHERE isPublic = 1 ORDER BY createdAt DESC")
+    fun getPublicCapsules(): Flow<List<CapsuleEntity>>
+
+    @Query("SELECT id FROM capsules WHERE isSharedWithMe = 1 AND ownerId != :userId")
+    suspend fun getSharedCapsuleIdsForUser(userId: String): List<String>
+
     @Query("SELECT * FROM capsules WHERE isUnlocked = 0 AND isTimeBased = 1 AND unlockTime <= :currentTime")
     suspend fun getUnlockedByTime(currentTime: Long): List<CapsuleEntity>
 
@@ -67,7 +73,7 @@ interface CapsuleDao {
     suspend fun getSharedCapsuleCount(userId: String): Int
 
     // FIX: 15
-    @Query("SELECT * FROM capsules WHERE (ownerId = :userId OR isSharedWithMe = 1 OR canBeShared = 1) AND NOT (latitude = 0.0 AND longitude = 0.0) ORDER BY createdAt DESC")
+    @Query("SELECT * FROM capsules WHERE (ownerId = :userId OR isSharedWithMe = 1 OR isPublic = 1) AND NOT (latitude = 0.0 AND longitude = 0.0) ORDER BY createdAt DESC")
     fun getCapsulesForMap(userId: String): Flow<List<CapsuleEntity>>
 
     @Query("UPDATE capsules SET canBeShared = :canBeShared WHERE id = :capsuleId")

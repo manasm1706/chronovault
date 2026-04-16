@@ -83,6 +83,8 @@ class CapsulesFragment : Fragment() {
         binding.chipLocked.setOnClickListener { applyFilter(FilterType.LOCKED) }
         binding.chipUnlocked.setOnClickListener { applyFilter(FilterType.UNLOCKED) }
         binding.chipShared.setOnClickListener { applyFilter(FilterType.SHARED) }
+        binding.chipPersonal.setOnClickListener { applyFilter(FilterType.PERSONAL) }
+        binding.chipPublic.setOnClickListener { applyFilter(FilterType.PUBLIC) }
 
         // FAB for create capsule
         binding.fabCreateCapsule.setOnClickListener {
@@ -114,7 +116,9 @@ class CapsulesFragment : Fragment() {
             binding.chipAll to FilterType.ALL,
             binding.chipLocked to FilterType.LOCKED,
             binding.chipUnlocked to FilterType.UNLOCKED,
-            binding.chipShared to FilterType.SHARED
+            binding.chipShared to FilterType.SHARED,
+            binding.chipPersonal to FilterType.PERSONAL,
+            binding.chipPublic to FilterType.PUBLIC
         )
 
         chips.forEach { (chip, chipFilter) ->

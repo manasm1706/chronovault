@@ -32,6 +32,10 @@ class CapsuleRepository(
         return capsuleDao.getSharedCapsules(userId)
     }
 
+    fun getPublicCapsules(): Flow<List<CapsuleEntity>> {
+        return capsuleDao.getPublicCapsules()
+    }
+
     suspend fun insertCapsule(capsule: CapsuleEntity) {
         capsuleDao.insertCapsule(capsule)
     }
@@ -115,6 +119,7 @@ class CapsuleRepository(
                     "unlockLongitude" to (capsule.unlockLongitude ?: 0.0),
                     "isLocationBased" to capsule.isLocationBased,
                     "isTimeBased" to capsule.isTimeBased,
+                    "isPublic" to capsule.isPublic,
                     "canBeShared" to capsule.canBeShared,
                     "sharedWith" to capsule.sharedWith
                 )
@@ -133,8 +138,12 @@ class CapsuleRepository(
                 return Result.failure(result.exceptionOrNull() ?: Exception("Unknown error"))
             }
             val data = result.getOrThrow()
+            val normalizedId = (data["clientId"] as? String)
+                ?.takeIf { it.isNotBlank() }
+                ?: (data["id"] as? String)
+                ?: capsuleId
             val capsule = CapsuleEntity(
-                id = data["id"] as? String ?: capsuleId,
+                id = normalizedId,
                 title = data["title"] as? String ?: "",
                 message = data["message"] as? String ?: "",
                 imageBase64 = data["imageBase64"] as? String,
@@ -150,6 +159,7 @@ class CapsuleRepository(
                 isTimeBased = data["isTimeBased"] as? Boolean ?: false,
                 ownerId = data["ownerId"] as? String ?: "",
                 sharedWith = (data["sharedWith"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
+                isPublic = data["isPublic"] as? Boolean ?: false,
                 canBeShared = data["canBeShared"] as? Boolean ?: false
             )
             insertCapsule(capsule)
@@ -172,7 +182,8 @@ class CapsuleRepository(
             val remoteCapsules = remote.getOrThrow()
             var restored = 0
             remoteCapsules.forEach { data ->
-                val id = data["id"] as? String ?: return@forEach
+                val id = ((data["clientId"] as? String)?.takeIf { it.isNotBlank() }
+                    ?: (data["id"] as? String)) ?: return@forEach
                 val capsule = CapsuleEntity(
                     id = id,
                     title = data["title"] as? String ?: "",
@@ -190,6 +201,7 @@ class CapsuleRepository(
                     isTimeBased = data["isTimeBased"] as? Boolean ?: false,
                     ownerId = data["ownerId"] as? String ?: userId,
                     sharedWith = (data["sharedWith"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
+                    isPublic = data["isPublic"] as? Boolean ?: false,
                     canBeShared = data["canBeShared"] as? Boolean ?: false
                 )
                 capsuleDao.insertCapsule(capsule)
@@ -199,6 +211,39 @@ class CapsuleRepository(
             Result.success(restored)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    suspend fun getPublicCapsulesFromCloud(): Result<List<CapsuleEntity>> {
+        return firestoreCapsuleService.getPublicCapsules().mapCatching { payload ->
+            payload.mapNotNull { data ->
+                val id = ((data["clientId"] as? String)?.takeIf { it.isNotBlank() }
+                    ?: (data["id"] as? String)) ?: return@mapNotNull null
+                CapsuleEntity(
+                    id = id,
+                    title = data["title"] as? String ?: "",
+                    message = data["message"] as? String ?: "",
+                    imageBase64 = (data["imageBase64"] as? String)?.ifBlank { null },
+                    imageMimeType = data["imageMimeType"] as? String ?: "image/jpeg",
+                    latitude = (data["latitude"] as? Number)?.toDouble() ?: 0.0,
+                    longitude = (data["longitude"] as? Number)?.toDouble() ?: 0.0,
+                    createdAt = (data["createdAt"] as? Number)?.toLong() ?: System.currentTimeMillis(),
+                    unlockTime = (data["unlockTime"] as? Number)?.toLong(),
+                    unlockLatitude = (data["unlockLatitude"] as? Number)?.toDouble(),
+                    unlockLongitude = (data["unlockLongitude"] as? Number)?.toDouble(),
+                    isUnlocked = data["isUnlocked"] as? Boolean ?: false,
+                    isLocationBased = data["isLocationBased"] as? Boolean ?: false,
+                    isTimeBased = data["isTimeBased"] as? Boolean ?: false,
+                    ownerId = data["ownerId"] as? String ?: "",
+                    sharedWith = (data["sharedWith"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
+                    isPublic = data["isPublic"] as? Boolean ?: false,
+                    canBeShared = data["canBeShared"] as? Boolean ?: false,
+                    isSharedWithMe = false,
+                    isDiscovered = data["isDiscovered"] as? Boolean ?: false,
+                    sharedByName = data["sharedByName"] as? String,
+                    sharedAt = (data["sharedAt"] as? Number)?.toLong()
+                )
+            }
         }
     }
 }

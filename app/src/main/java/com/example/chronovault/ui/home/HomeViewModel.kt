@@ -9,11 +9,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.chronovault.R
 import com.example.chronovault.data.local.entity.CapsuleEntity
 import com.example.chronovault.data.ServiceLocator
-import com.example.chronovault.data.remote.RetrofitClient
 import com.example.chronovault.data.repository.CapsuleRepository
 import com.example.chronovault.data.repository.NotificationRepository
+import com.example.chronovault.data.repository.QuoteRepository
+import com.example.chronovault.data.remote.api.QuoteResponse
 import com.example.chronovault.ui.common.LoadingState
 import com.example.chronovault.utils.LocationHelper
+import com.example.chronovault.utils.NotificationHelper
 import com.example.chronovault.utils.PreferencesManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -29,6 +31,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val capsuleRepository: CapsuleRepository = ServiceLocator.provideCapsuleRepository(application)
     private val notificationRepository: NotificationRepository = ServiceLocator.provideNotificationRepository(application)
     private val preferencesManager: PreferencesManager = ServiceLocator.providePreferencesManager(application)
+    private val quoteRepository: QuoteRepository = ServiceLocator.provideQuoteRepository(application)
     private var dashboardJob: Job? = null
     private var userLocation: Pair<Double, Double>? = null
     private val nearbyTriggeredThisSession = mutableSetOf<String>()
@@ -62,8 +65,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _greetingSubtitle = MutableLiveData<String>()
     val greetingSubtitle: LiveData<String> = _greetingSubtitle
 
-    private val _dailyQuote = MutableLiveData<String>("Preserve moments. Rediscover yourself.")
-    val dailyQuote: LiveData<String> = _dailyQuote
+    private val _quote = MutableLiveData<QuoteResponse>()
+    val quote: LiveData<QuoteResponse> = _quote
+
+    private val _quoteError = MutableLiveData<String>()
+    val quoteError: LiveData<String> = _quoteError
 
     private val _isQuoteRefreshing = MutableLiveData(false)
     val isQuoteRefreshing: LiveData<Boolean> = _isQuoteRefreshing
@@ -71,24 +77,52 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _loadingState = MutableLiveData<LoadingState>(LoadingState.Idle)
     val loadingState: LiveData<LoadingState> = _loadingState
 
+    private val nearbyCooldownMillis = 15 * 60 * 1000L
+
     val unreadCount: LiveData<Int> = notificationRepository.getUnreadCount().asLiveData()
 
     init {
         loadDashboardData()
-        refreshQuote()
+        loadCachedQuote()
     }
 
     fun refreshQuote() {
+        loadQuote()
+    }
+
+    fun loadQuote() {
         viewModelScope.launch {
+            _quoteError.value = ""
+            _isQuoteRefreshing.value = true
             try {
-                _isQuoteRefreshing.value = true
-                val response = RetrofitClient.quoteApi.getRandomQuote()
-                _dailyQuote.value = "${response.content} — ${response.author}"
-            } catch (_: Exception) {
-                // Keep the default quote on failure
+                val result = quoteRepository.fetchQuote()
+                result.onSuccess { remoteQuote ->
+                    _quote.value = remoteQuote
+                }.onFailure {
+                    _quoteError.value = getApplication<Application>()
+                        .getString(R.string.home_quote_error)
+                    if (_quote.value == null) {
+                        _quote.value = QuoteResponse(
+                            q = getApplication<Application>().getString(R.string.home_quote_fallback_text),
+                            a = getApplication<Application>().getString(R.string.home_quote_fallback_author)
+                        )
+                    }
+                }
             } finally {
                 _isQuoteRefreshing.value = false
             }
+        }
+    }
+
+    private fun loadCachedQuote() {
+        val cached = quoteRepository.getCachedQuote()
+        if (cached != null) {
+            _quote.value = QuoteResponse(q = cached.q, a = cached.a)
+        } else {
+            _quote.value = QuoteResponse(
+                q = getApplication<Application>().getString(R.string.home_quote_fallback_text),
+                a = getApplication<Application>().getString(R.string.home_quote_fallback_author)
+            )
         }
     }
 
@@ -178,6 +212,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch {
                 runCatching {
                     notificationRepository.createNearbyNotification(nearby.id, nearby.title)
+                    if (preferencesManager.shouldRunCooldownEvent("nearby_${nearby.id}", nearbyCooldownMillis)) {
+                        NotificationHelper.sendNearbyCapsuleAlert(getApplication())
+                    }
                 }
             }
         }

@@ -3,16 +3,16 @@ package com.example.chronovault.data.remote.api
 import retrofit2.http.GET
 
 /**
- * API service for fetching daily quotes
+ * ZenQuotes API for motivational quotes.
  */
-interface QuoteApi {
+interface QuoteApiService {
 
     @GET("random")
-    suspend fun getRandomQuote(): QuoteResponse
+    suspend fun getRandomQuote(): List<QuoteResponse>
 }
 
 data class QuoteResponse(
-    val content: String,
-    val author: String
+    val q: String,
+    val a: String
 )
 

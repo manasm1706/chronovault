@@ -74,6 +74,15 @@ class CapsuleDetailsActivity : AppCompatActivity() {
 
         capsuleId?.let { viewModel.loadCapsule(it) }
         fetchLastKnownLocation()
+        supportFragmentManager.setFragmentResultListener(
+            ShareCapsuleBottomSheet.RESULT_KEY,
+            this
+        ) { _, bundle ->
+            val selected = bundle.getStringArray(ShareCapsuleBottomSheet.RESULT_SELECTED_USER_IDS)?.toList().orEmpty()
+            if (selected.isNotEmpty()) {
+                viewModel.shareCapsuleToUsers(selected)
+            }
+        }
 
         setupAdapters()
         setupUI()
@@ -106,7 +115,7 @@ class CapsuleDetailsActivity : AppCompatActivity() {
         }
 
         sharedWithAdapter = SharedWithAdapter(
-            onRemoveClick = { email -> viewModel.unshareCapsule(email) }
+            onRemoveClick = { user -> viewModel.unshareCapsule(user.userId) }
         )
         binding.rvSharedWith.apply {
             layoutManager = LinearLayoutManager(this@CapsuleDetailsActivity)
@@ -123,7 +132,7 @@ class CapsuleDetailsActivity : AppCompatActivity() {
             }
 
             btnShare.setOnClickListener {
-                showShareDialog()
+                ShareCapsuleBottomSheet().show(supportFragmentManager, "share_capsule_sheet")
             }
 
             btnMakePrivate.setOnClickListener {
@@ -165,7 +174,7 @@ class CapsuleDetailsActivity : AppCompatActivity() {
         }
 
         viewModel.canComment.observe(this@CapsuleDetailsActivity) { canComment ->
-            val showComments = canComment && !isCurrentlyLockedByGate
+            val showComments = canComment
             binding.commentInputLayout.visibility = if (showComments) View.VISIBLE else View.GONE
             binding.layoutComments.visibility = if (showComments) View.VISIBLE else View.GONE
         }
@@ -174,10 +183,10 @@ class CapsuleDetailsActivity : AppCompatActivity() {
             binding.tvUnlockReason.text = reason
         }
 
-        viewModel.sharedWithEmails.observe(this@CapsuleDetailsActivity) { emails ->
-            sharedWithAdapter.submitList(emails.toList())
-            binding.tvNoShares.visibility = if (emails.isEmpty()) View.VISIBLE else View.GONE
-            binding.rvSharedWith.visibility = if (emails.isNotEmpty()) View.VISIBLE else View.GONE
+        viewModel.sharedUsers.observe(this@CapsuleDetailsActivity) { sharedUsers ->
+            sharedWithAdapter.submitList(sharedUsers)
+            binding.tvNoShares.visibility = if (sharedUsers.isEmpty()) View.VISIBLE else View.GONE
+            binding.rvSharedWith.visibility = if (sharedUsers.isNotEmpty()) View.VISIBLE else View.GONE
         }
 
         viewModel.comments.observe(this@CapsuleDetailsActivity) { commentList ->
@@ -346,8 +355,9 @@ class CapsuleDetailsActivity : AppCompatActivity() {
             ivCapsuleImage.visibility = View.GONE
             tvLocation.visibility = View.GONE
             layoutSharedWith.visibility = View.GONE
-            layoutComments.visibility = View.GONE
-            commentInputLayout.visibility = View.GONE
+            val showComments = viewModel.canComment.value == true
+            layoutComments.visibility = if (showComments) View.VISIBLE else View.GONE
+            commentInputLayout.visibility = if (showComments) View.VISIBLE else View.GONE
             btnShare.visibility = View.GONE
             btnMakePrivate.visibility = View.GONE
         }
@@ -468,8 +478,8 @@ class CapsuleDetailsActivity : AppCompatActivity() {
 
     private fun showShareDialog() {
         val editText = EditText(this).apply {
-            hint = getString(R.string.share_dialog_hint)
-            inputType = android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+            hint = getString(R.string.share_dialog_hint_user_id)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
             setPadding(48, 32, 48, 32)
         }
 
@@ -477,11 +487,11 @@ class CapsuleDetailsActivity : AppCompatActivity() {
             .setTitle(R.string.share_dialog_title)
             .setView(editText)
             .setPositiveButton(R.string.button_share) { _, _ ->
-                val email = editText.text.toString().trim()
-                if (email.isNotEmpty() && email.contains("@")) {
-                    viewModel.shareCapsule(email)
+                val userId = editText.text.toString().trim()
+                if (userId.isNotEmpty()) {
+                    viewModel.shareCapsule(userId)
                 } else {
-                    Toast.makeText(this, R.string.error_invalid_email, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, R.string.error_required_field, Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton(R.string.dismiss, null)

@@ -56,7 +56,27 @@
                 android:id="@+id/chip_shared"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:text="@string/filter_shared"
+                app:chipBackgroundColor="?attr/colorSurface"
+                app:chipStrokeColor="?attr/colorOutline"
+                app:chipStrokeWidth="1dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_personal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="@string/filter_personal"
+                app:chipBackgroundColor="?attr/colorSurface"
+                app:chipStrokeColor="?attr/colorOutline"
+                app:chipStrokeWidth="1dp" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_public"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/filter_public"
                 app:chipBackgroundColor="?attr/colorSurface"
                 app:chipStrokeColor="?attr/colorOutline"
                 app:chipStrokeWidth="1dp" />

@@ -10,24 +10,28 @@ import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.OnBackPressedCallback
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AlertDialog
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
-import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.example.chronovault.databinding.ActivityMainBinding
 import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.ui.chat.ChatFragment
 import com.example.chronovault.ui.auth.AuthActivity
 import com.example.chronovault.services.ForegroundLocationService
+import com.example.chronovault.services.ServiceManager
 import com.example.chronovault.utils.NotificationHelper
 import com.example.chronovault.utils.ThemeManager
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private var shouldTrackLocation: Boolean = false
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -67,25 +71,25 @@ class MainActivity : AppCompatActivity() {
             .findFragmentById(R.id.nav_host_fragment_activity_main) as NavHostFragment
         val navController = navHostFragment.navController
 
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.navigation_home,
-                R.id.navigation_map,
-                R.id.navigation_capsules,
-                R.id.chatListFragment,
-                R.id.navigation_profile
-            )
-        )
-        @Suppress("UNUSED_VARIABLE")
-        val _keepTopLevelConfig = appBarConfiguration
-
         navView.setupWithNavController(navController)
         ensureLocationPermissionFlow()
+
+        authRepository.getCurrentUserId()?.let { userId ->
+            val sharingRepository = ServiceLocator.provideSharingRepository(this)
+            lifecycleScope.launch {
+                sharingRepository.syncSharedCapsules(userId)
+                    .onFailure { error ->
+                        Log.e("APP_ERROR", "Initial shared capsule sync failed: ${error.message}", error)
+                    }
+            }
+            sharingRepository.startSharedCapsulesRealtimeSync(userId)
+        }
 
         navView.menu.findItem(R.id.navigation_home)?.isChecked = true
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             Log.d("NAV", destination.id.toString())
+
             val selectedTabId = when (destination.id) {
                 R.id.chatFragment,
                 R.id.chatListFragment -> R.id.chatListFragment
@@ -148,6 +152,11 @@ class MainActivity : AppCompatActivity() {
     ): Boolean {
         if (navController.currentDestination?.id == destinationId) return true
 
+        if (destinationId == R.id.chatListFragment) {
+            val popped = navController.popBackStack(R.id.chatListFragment, false)
+            if (popped) return true
+        }
+
         val navOptions = navOptions {
             launchSingleTop = true
             restoreState = true
@@ -198,7 +207,7 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("permissions", MODE_PRIVATE)
         val askedBefore = prefs.getBoolean(KEY_ASKED_LOCATION_PERMISSION, false)
         if (!askedBefore) {
-            prefs.edit().putBoolean(KEY_ASKED_LOCATION_PERMISSION, true).apply()
+            prefs.edit { putBoolean(KEY_ASKED_LOCATION_PERMISSION, true) }
             locationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
             return
         }
@@ -248,8 +257,31 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        shouldTrackLocation = true
+        if (ServiceManager.isLocationServiceRunning) {
+            Log.d("SERVICE_DEBUG", "Location service already running")
+            return
+        }
+
         val serviceIntent = Intent(this, ForegroundLocationService::class.java)
+        Log.d("SERVICE_DEBUG", "Starting location foreground service")
         ContextCompat.startForegroundService(this, serviceIntent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (shouldTrackLocation) {
+            startLocationTrackingIfPermitted()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        ServiceLocator.provideSharingRepository(this).stopSharedCapsulesRealtimeSync()
+        super.onDestroy()
     }
 
     private fun animateBottomNavSelection(navView: BottomNavigationView, itemId: Int) {

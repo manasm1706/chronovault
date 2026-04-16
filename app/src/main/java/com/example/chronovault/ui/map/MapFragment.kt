@@ -381,12 +381,12 @@ class MapFragment : Fragment() {
         val pin = ContextCompat.getDrawable(requireContext(), R.drawable.marker_pin)?.mutate() ?: return null
         // FIX: 10
         val isOwned = viewModel.isOwnedByCurrentUser(capsule)
-        val isEffectivelyUnlocked = viewModel.isEffectivelyUnlocked(capsule)
         val isNearby = isNearbyCapsule(capsule)
         val tint = when {
             isNearby -> ContextCompat.getColor(requireContext(), R.color.warning)
+            capsule.isPublic -> ContextCompat.getColor(requireContext(), R.color.secondary)
             capsule.isSharedWithMe || capsule.sharedWith.isNotEmpty() -> ContextCompat.getColor(requireContext(), R.color.secondary)
-            isEffectivelyUnlocked -> ContextCompat.getColor(requireContext(), R.color.success)
+            isOwned -> ContextCompat.getColor(requireContext(), R.color.success)
             else -> ContextCompat.getColor(requireContext(), android.R.color.darker_gray)
         }
 
@@ -604,12 +604,16 @@ class MapFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if (::mapView.isInitialized) mapView.onResume()
+        if (overlayOptions.showMyLocation) {
+            enableMyLocation()
+        }
         // Reload map data when returning (e.g. after creating a new capsule)
         viewModel.loadMapData()
     }
 
     override fun onPause() {
         super.onPause()
+        myLocationOverlay?.disableMyLocation()
         if (::mapView.isInitialized) mapView.onPause()
     }
 

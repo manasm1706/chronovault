@@ -3,41 +3,63 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="32dp">
+    android:padding="24dp">
 
-    <ImageView
-        android:id="@+id/iv_onboard_icon"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
-        android:contentDescription="@string/app_name"
-        android:src="@mipmap/ic_launcher_round"
-        app:layout_constraintBottom_toTopOf="@+id/tv_onboard_title"
+    <LinearLayout
+        android:id="@+id/container_onboarding_center"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="88dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <TextView
-        android:id="@+id/tv_onboard_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
-        android:gravity="center"
-        android:textAppearance="?attr/textAppearanceHeadlineMedium"
-        android:textColor="?attr/colorOnBackground"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/tv_onboard_desc"
-        app:layout_constraintTop_toBottomOf="@+id/iv_onboard_icon" />
+        <FrameLayout
+            android:layout_width="220dp"
+            android:layout_height="220dp"
+            android:foregroundGravity="center">
 
-    <TextView
-        android:id="@+id/tv_onboard_desc"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:textAppearance="?attr/textAppearanceBodyLarge"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_onboard_title" />
+            <View
+                android:id="@+id/view_logo_glow"
+                android:layout_width="220dp"
+                android:layout_height="220dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_ochre_glow" />
+
+            <com.example.chronovault.utils.ThemedLogoImageView
+                android:id="@+id/iv_onboard_logo"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_gravity="center"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/app_name"
+                android:elevation="8dp"
+                android:scaleType="centerInside" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tv_onboard_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:textSize="28sp"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_onboard_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:gravity="center"
+            android:lineSpacingExtra="4dp"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="#CCFFFFFF" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

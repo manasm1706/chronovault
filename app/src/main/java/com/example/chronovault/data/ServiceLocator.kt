@@ -17,6 +17,8 @@ import com.example.chronovault.data.repository.FriendRepository
 import com.example.chronovault.data.repository.UserRepository
 import com.example.chronovault.data.repository.SharingRepository
 import com.example.chronovault.data.repository.NotificationRepository
+import com.example.chronovault.data.repository.QuoteRepository
+import com.example.chronovault.data.remote.RetrofitClient
 import com.example.chronovault.utils.PreferencesManager
 
 /**
@@ -33,6 +35,7 @@ object ServiceLocator {
     private var notificationRepository: NotificationRepository? = null
     private var friendRepository: FriendRepository? = null
     private var chatRepository: ChatRepository? = null
+    private var quoteRepository: QuoteRepository? = null
     private var preferencesManager: PreferencesManager? = null
     private var firebaseAuthService: FirebaseAuthService? = null
     private var firestoreCapsuleService: FirestoreCapsuleService? = null
@@ -54,7 +57,8 @@ object ServiceLocator {
                 .addMigrations(
                     ChronoVaultDatabase.MIGRATION_3_4,
                     ChronoVaultDatabase.MIGRATION_4_5,
-                    ChronoVaultDatabase.MIGRATION_5_6
+                    ChronoVaultDatabase.MIGRATION_5_6,
+                    ChronoVaultDatabase.MIGRATION_6_7
                 )
                 .build()
             database = instance
@@ -152,8 +156,9 @@ object ServiceLocator {
     fun provideSharingRepository(context: Context): SharingRepository {
         return sharingRepository ?: synchronized(dbLock) {
             val firebaseSharing = provideFirebaseSharingService()
+            val capsuleDao = provideDatabase(context).capsuleDao()
             val prefs = providePreferencesManager(context)
-            val repo = SharingRepository(firebaseSharing, prefs)
+            val repo = SharingRepository(firebaseSharing, capsuleDao, prefs)
             sharingRepository = repo
             repo
         }
@@ -195,6 +200,18 @@ object ServiceLocator {
         }
     }
 
+    fun provideQuoteRepository(context: Context): QuoteRepository {
+        return quoteRepository ?: synchronized(dbLock) {
+            val prefs = providePreferencesManager(context)
+            val repo = QuoteRepository(
+                api = RetrofitClient.quoteApi,
+                preferencesManager = prefs
+            )
+            quoteRepository = repo
+            repo
+        }
+    }
+
     fun resetRepositories() {
         synchronized(dbLock) {
             capsuleRepository = null
@@ -204,6 +221,7 @@ object ServiceLocator {
             notificationRepository = null
             friendRepository = null
             chatRepository = null
+            quoteRepository = null
             database = null
             preferencesManager = null
             firebaseAuthService = null

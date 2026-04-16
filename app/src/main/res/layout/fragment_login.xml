@@ -22,16 +22,27 @@
             android:paddingBottom="@dimen/spacing_xxl">
 
             <!-- Logo/Title -->
+            <com.example.chronovault.utils.ThemedLogoImageView
+                android:id="@+id/iv_logo"
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:contentDescription="@string/app_name"
+                android:scaleType="fitCenter"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
             <TextView
                 android:id="@+id/tv_app_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_md"
                 android:text="@string/app_name"
                 android:textAppearance="@style/TextAppearance.ChronoVault.DisplaySmall"
                 android:textColor="?attr/colorPrimary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toBottomOf="@id/iv_logo" />
 
             <TextView
                 android:id="@+id/tv_tagline"
@@ -69,6 +80,18 @@
                     android:inputType="textEmailAddress" />
 
             </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:id="@+id/tv_forgot_password"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_sm"
+                android:layout_marginEnd="@dimen/spacing_lg"
+                android:text="@string/auth_forgot_password"
+                android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
+                android:textColor="?attr/colorPrimary"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/til_password" />
 
             <!-- Password Field -->
             <com.google.android.material.textfield.TextInputLayout
@@ -109,7 +132,7 @@
                 app:cornerRadius="@dimen/corner_xl"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/til_password" />
+                app:layout_constraintTop_toBottomOf="@id/tv_forgot_password" />
 
             <!-- Signup Link -->
             <LinearLayout
@@ -147,6 +170,10 @@
                 android:layout_marginStart="@dimen/spacing_lg"
                 android:layout_marginTop="@dimen/spacing_lg"
                 android:layout_marginEnd="@dimen/spacing_lg"
+                android:background="?attr/colorSurface"
+                android:ellipsize="end"
+                android:maxLines="4"
+                android:padding="@dimen/spacing_sm"
                 android:text=""
                 android:textAppearance="@style/TextAppearance.ChronoVault.BodySmall"
                 android:textColor="?attr/colorError"

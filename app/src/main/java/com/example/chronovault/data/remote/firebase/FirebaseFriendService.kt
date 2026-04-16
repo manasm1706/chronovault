@@ -1,6 +1,8 @@
 package com.example.chronovault.data.remote.firebase
 
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -19,12 +21,55 @@ class FirebaseFriendService {
                 "senderId" to senderId,
                 "receiverId" to receiverId,
                 "status" to "PENDING",
-                "createdAt" to System.currentTimeMillis(),
-                "updatedAt" to System.currentTimeMillis()
+                "timestamp" to FieldValue.serverTimestamp(),
+                "createdAt" to FieldValue.serverTimestamp(),
+                "updatedAt" to FieldValue.serverTimestamp()
             )
             val doc = db.collection("friend_requests").add(payload).await()
             Result.success(doc.id)
         } catch (e: Exception) {
+            Log.e("APP_ERROR", "friend_requests create failed: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
+    @Suppress("unused")
+    suspend fun userExists(userId: String): Result<Boolean> {
+        return try {
+            val doc = db.collection("users").document(userId).get().await()
+            Result.success(doc.exists())
+        } catch (e: Exception) {
+            Log.e("APP_ERROR", "users read failed for id=$userId: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
+    @Suppress("unused")
+    suspend fun hasPendingRequestBetween(userA: String, userB: String): Result<Boolean> {
+        return try {
+            val outgoing = db.collection("friend_requests")
+                .whereEqualTo("senderId", userA)
+                .whereEqualTo("receiverId", userB)
+                .whereEqualTo("status", "PENDING")
+                .limit(1)
+                .get()
+                .await()
+
+            if (!outgoing.isEmpty) {
+                return Result.success(true)
+            }
+
+            val incoming = db.collection("friend_requests")
+                .whereEqualTo("senderId", userB)
+                .whereEqualTo("receiverId", userA)
+                .whereEqualTo("status", "PENDING")
+                .limit(1)
+                .get()
+                .await()
+
+            Result.success(!incoming.isEmpty)
+        } catch (e: Exception) {
+            Log.e("APP_ERROR", "friend_requests duplicate check failed: ${e.message}", e)
             Result.failure(e)
         }
     }
@@ -38,19 +83,6 @@ class FirebaseFriendService {
                 )
             ).await()
             Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getFriendRequestsForUser(userId: String): Result<List<Map<String, Any>>> {
-        return try {
-            val docs = db.collection("friend_requests")
-                .whereEqualTo("receiverId", userId)
-                .whereEqualTo("status", "PENDING")
-                .get()
-                .await()
-            Result.success(docs.documents.mapNotNull { doc -> doc.data?.plus("id" to doc.id) })
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -122,6 +154,27 @@ class FirebaseFriendService {
                     )
                 }
                 trySend(requests)
+            }
+
+        awaitClose { registration.remove() }
+    }
+
+    fun observeAcceptedFriends(currentUserId: String): Flow<List<String>> = callbackFlow {
+        Log.d("FIRESTORE_DEBUG", "Reading friends for user: $currentUserId")
+        val registration = db.collection("friends")
+            .whereArrayContains("users", currentUserId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e("APP_ERROR", "friends read failed for user=$currentUserId: ${error.message}", error)
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+
+                val friendIds = snapshot?.documents.orEmpty().mapNotNull { doc ->
+                    val users = (doc.get("users") as? List<*>)?.mapNotNull { it as? String } ?: return@mapNotNull null
+                    users.firstOrNull { it != currentUserId }
+                }
+                trySend(friendIds)
             }
 
         awaitClose { registration.remove() }

@@ -1,13 +1,17 @@
 package com.example.chronovault.utils
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.content.pm.PackageManager
 import android.util.TypedValue
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.example.chronovault.R
 import com.example.chronovault.MainActivity
 
@@ -24,81 +28,65 @@ object NotificationHelper {
         }
     }
 
-
-    const val CHANNEL_ID = "chronovault_notifications"
+    const val CHANNEL_ID = "chronovault_channel"
     const val CHANNEL_NAME = "ChronoVault Notifications"
+    const val CHANNEL_DESCRIPTION = "Updates for memories, discovery, and sharing"
     const val NOTIFICATION_ID_UNLOCK = 1001
     const val NOTIFICATION_ID_NEARBY = 1002
     const val NOTIFICATION_ID_SHARED = 1003
     const val NOTIFICATION_ID_CHAT = 1004
+    const val NOTIFICATION_ID_CREATED = 1005
+    const val NOTIFICATION_ID_DISCOVERED = 1006
 
     /**
      * Create notification channel (required for Android 8.0+)
      */
-    fun createNotificationChannel(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = context.getString(R.string.notification_channel_desc)
-                enableVibration(true)
-            }
-
-            val notificationManager: NotificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+    fun createChannel(context: Context) {
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            CHANNEL_NAME,
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = CHANNEL_DESCRIPTION
+            enableVibration(true)
         }
+
+        val notificationManager: NotificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
     }
 
-    /**
-     * Build a notification for capsule unlock
-     */
-    fun buildUnlockNotification(
-        context: Context,
-        capsuleTitle: String
-    ): NotificationCompat.Builder {
-        return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notifications_black_24dp)
-            .setContentTitle("Capsule Unlocked!")
-            .setContentText("$capsuleTitle is now ready to open")
-            .setAutoCancel(true)
-            .setColor(resolveThemePrimaryColor(context))
-            .setStyle(NotificationCompat.BigTextStyle().bigText("$capsuleTitle is now ready to open"))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-    }
+    // Backward-compatible alias used by existing code.
+    fun createNotificationChannel(context: Context) = createChannel(context)
 
-    /**
-     * Build a notification for nearby capsule
-     */
-    fun buildNearbyNotification(
+    fun showNotification(
         context: Context,
-        capsuleTitle: String
-    ): NotificationCompat.Builder {
-        return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_home_black_24dp)
-            .setContentTitle("Memory Location Nearby!")
-            .setContentText("You're near: $capsuleTitle")
+        title: String,
+        message: String,
+        notificationId: Int = (System.currentTimeMillis() % Int.MAX_VALUE).toInt(),
+        contentIntent: PendingIntent? = null
+    ) {
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setAutoCancel(true)
-            .setColor(resolveThemePrimaryColor(context))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-    }
+            .setColor(resolveThemePrimaryColor(context))
+            .setVibrate(longArrayOf(0, 300))
 
-    /**
-     * Build a notification for shared capsule
-     */
-    fun buildSharedNotification(
-        context: Context,
-        fromName: String
-    ): NotificationCompat.Builder {
-        return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notifications_black_24dp)
-            .setContentTitle("New Shared Capsule")
-            .setContentText("$fromName shared a memory with you")
-            .setAutoCancel(true)
-            .setColor(resolveThemePrimaryColor(context))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+        if (contentIntent != null) {
+            builder.setContentIntent(contentIntent)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        NotificationManagerCompat.from(context).notify(notificationId, builder.build())
     }
 
     /**
@@ -114,48 +102,48 @@ object NotificationHelper {
      * Send capsule unlocked notification
      */
     fun sendCapsuleUnlockedNotification(context: Context, title: String, message: String) {
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notifications_black_24dp)
-            .setContentTitle(title)
-            .setContentText(message)
-            .setAutoCancel(true)
-            .setColor(resolveThemePrimaryColor(context))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setVibrate(longArrayOf(0, 500))
-
-        showNotification(context, NOTIFICATION_ID_UNLOCK, builder)
+        showNotification(context, title, message, NOTIFICATION_ID_UNLOCK)
     }
 
     /**
      * Send location-based unlock notification
      */
     fun sendLocationBasedUnlockNotification(context: Context, title: String, message: String) {
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notifications_black_24dp)
-            .setContentTitle(title)
-            .setContentText(message)
-            .setAutoCancel(true)
-            .setColor(resolveThemePrimaryColor(context))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setVibrate(longArrayOf(0, 500))
-
-        showNotification(context, NOTIFICATION_ID_NEARBY, builder)
+        showNotification(context, title, message, NOTIFICATION_ID_NEARBY)
     }
 
     /**
      * Send shared capsule notification
      */
     fun sendSharedNotification(context: Context, title: String, message: String) {
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notifications_black_24dp)
-            .setContentTitle(title)
-            .setContentText(message)
-            .setAutoCancel(true)
-            .setColor(resolveThemePrimaryColor(context))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setVibrate(longArrayOf(0, 500))
+        showNotification(context, title, message, NOTIFICATION_ID_SHARED)
+    }
 
-        showNotification(context, NOTIFICATION_ID_SHARED, builder)
+    fun sendMemoryDiscoveredNotification(context: Context) {
+        showNotification(
+            context = context,
+            title = "Memory Discovered \uD83D\uDCCD",
+            message = "You found a memory nearby. Tap to explore.",
+            notificationId = NOTIFICATION_ID_DISCOVERED
+        )
+    }
+
+    fun sendCapsuleCreatedNotification(context: Context) {
+        showNotification(
+            context = context,
+            title = "Capsule Created \uD83D\uDCE6",
+            message = "Your memory has been safely stored.",
+            notificationId = NOTIFICATION_ID_CREATED
+        )
+    }
+
+    fun sendNearbyCapsuleAlert(context: Context) {
+        showNotification(
+            context = context,
+            title = "You're near a memory \uD83D\uDC40",
+            message = "A memory is waiting nearby.",
+            notificationId = NOTIFICATION_ID_NEARBY
+        )
     }
 
     fun sendChatMessageNotification(
@@ -178,7 +166,7 @@ object NotificationHelper {
         )
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("New message from $senderName")
             .setContentText(message)
             .setAutoCancel(true)

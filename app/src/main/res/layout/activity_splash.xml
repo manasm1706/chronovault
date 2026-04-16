@@ -5,12 +5,12 @@
     android:layout_height="match_parent"
     android:background="@drawable/splash_gradient">
 
-    <ImageView
+    <com.example.chronovault.utils.ThemedLogoImageView
         android:id="@+id/iv_logo"
         android:layout_width="@dimen/avatar_size_xlarge"
         android:layout_height="@dimen/avatar_size_xlarge"
         android:contentDescription="@string/app_name"
-        android:src="@mipmap/ic_launcher_round"
+        android:scaleType="fitCenter"
         app:layout_constraintBottom_toTopOf="@+id/tv_app_name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

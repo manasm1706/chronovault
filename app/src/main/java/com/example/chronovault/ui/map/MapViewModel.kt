@@ -9,8 +9,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.chronovault.data.ServiceLocator
 import com.example.chronovault.data.local.entity.CapsuleEntity
 import com.example.chronovault.data.repository.CapsuleRepository
+import com.example.chronovault.data.repository.NotificationRepository
+import com.example.chronovault.data.repository.SharingRepository
 import com.example.chronovault.ui.common.LoadingState
 import com.example.chronovault.utils.LocationHelper
+import com.example.chronovault.utils.NotificationHelper
 import com.example.chronovault.utils.PreferencesManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -23,6 +26,8 @@ import kotlinx.coroutines.launch
 class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     private val capsuleRepository: CapsuleRepository = ServiceLocator.provideCapsuleRepository(application)
+    private val sharingRepository: SharingRepository = ServiceLocator.provideSharingRepository(application)
+    private val notificationRepository: NotificationRepository = ServiceLocator.provideNotificationRepository(application)
     private val preferencesManager: PreferencesManager = ServiceLocator.providePreferencesManager(application)
 
     // UI State
@@ -30,6 +35,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     val userLocation: LiveData<Pair<Double, Double>?> = _userLocation
 
     private val _capsuleMarkers = MutableLiveData<List<CapsuleEntity>>(emptyList())
+    private val _publicCloudCapsules = MutableLiveData<List<CapsuleEntity>>(emptyList())
     private val _visibleCapsules = MutableLiveData<List<CapsuleEntity>>(emptyList())
     // FIX: 15
     // MapFragment observes currently selected map mode capsules via this stream.
@@ -73,13 +79,16 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 // FIX: 12
                 persistExpiredTimeUnlocks()
+                syncSharedCapsulesToLocal()
+                loadPublicCapsulesFromCloud()
 
                 capsuleRepository.getCapsulesForMap(userId).collect { capsules ->
-                    _capsuleMarkers.value = capsules
+                    val merged = mergeCapsules(capsules, _publicCloudCapsules.value.orEmpty())
+                    _capsuleMarkers.value = merged
                     // FIX: 15
-                    updateVisibleCapsules(capsules)
+                    updateVisibleCapsules(merged)
                     _loadingState.value = LoadingState.Success
-                    capsules.forEach { capsule ->
+                    merged.forEach { capsule ->
                         Log.d("MAP", "Lat: ${capsule.latitude}, Lng: ${capsule.longitude}, id=${capsule.id}")
                     }
                 }
@@ -104,6 +113,9 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     fun setMapMode(mode: MapMode) {
         if (_mapMode.value == mode) return
         _mapMode.value = mode
+        if (mode == MapMode.WORLD) {
+            viewModelScope.launch { loadPublicCapsulesFromCloud() }
+        }
         updateVisibleCapsules(_capsuleMarkers.value.orEmpty())
     }
 
@@ -133,6 +145,11 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
                         capsuleRepository.markCapsuleDiscovered(capsule.id)
                         if (discoveredEventIds.add(capsule.id)) {
                             _discoveryEvent.value = capsule.copy(isDiscovered = true)
+                            if (!preferencesManager.isOneTimeEventMarked("discovered_${capsule.id}")) {
+                                preferencesManager.markOneTimeEvent("discovered_${capsule.id}")
+                                NotificationHelper.sendMemoryDiscoveredNotification(getApplication())
+                                notificationRepository.createNearbyNotification(capsule.id, capsule.title)
+                            }
                         }
                     }
                 }
@@ -170,18 +187,16 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     // FIX: 15
     private fun updateVisibleCapsules(source: List<CapsuleEntity>) {
         val visible = when (_mapMode.value ?: MapMode.PERSONAL) {
-            MapMode.PERSONAL -> source.filter { isOwnedByCurrentUser(it) }
+            MapMode.PERSONAL -> source.filter { capsule ->
+                isOwnedByCurrentUser(capsule) || capsule.isSharedWithMe
+            }
             MapMode.WORLD -> {
                 val location = _userLocation.value
-                if (location == null) {
-                    emptyList()
-                } else {
-                    source.filter { capsule ->
-                        val isWorldShared = !isOwnedByCurrentUser(capsule) &&
-                            (capsule.isSharedWithMe || capsule.sharedWith.isNotEmpty() || capsule.canBeShared)
-                        if (!isWorldShared) {
-                            false
-                        } else {
+                source.filter { capsule ->
+                    if (!capsule.isPublic) return@filter false
+                    if (location == null) {
+                        true
+                    } else {
                             val distance = LocationHelper.calculateDistance(
                                 location.first,
                                 location.second,
@@ -189,12 +204,95 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
                                 capsule.longitude
                             )
                             distance <= WORLD_RADIUS_METERS
-                        }
                     }
                 }
             }
         }
         _visibleCapsules.value = visible
+    }
+
+    private suspend fun loadPublicCapsulesFromCloud() {
+        val cloud = capsuleRepository.getPublicCapsulesFromCloud().getOrDefault(emptyList())
+        _publicCloudCapsules.value = cloud
+        _capsuleMarkers.value = mergeCapsules(_capsuleMarkers.value.orEmpty(), cloud)
+        updateVisibleCapsules(_capsuleMarkers.value.orEmpty())
+    }
+
+    private fun mergeCapsules(local: List<CapsuleEntity>, remote: List<CapsuleEntity>): List<CapsuleEntity> {
+        val byId = linkedMapOf<String, CapsuleEntity>()
+        (local + remote).forEach { capsule ->
+            val existing = byId[capsule.id]
+            byId[capsule.id] = if (existing == null) capsule else pickRicherCapsule(existing, capsule)
+        }
+
+        val bySignature = linkedMapOf<String, CapsuleEntity>()
+        byId.values.forEach { capsule ->
+            val signature = buildCapsuleSignature(capsule)
+            val existing = bySignature[signature]
+            bySignature[signature] = if (existing == null) capsule else pickRicherCapsule(existing, capsule)
+        }
+
+        return bySignature.values.toList()
+    }
+
+    private fun buildCapsuleSignature(capsule: CapsuleEntity): String {
+        return listOf(
+            capsule.ownerId,
+            capsule.title.trim().lowercase(),
+            capsule.message.trim().lowercase(),
+            String.format("%.5f", capsule.latitude),
+            String.format("%.5f", capsule.longitude)
+        ).joinToString("|")
+    }
+
+    private fun pickRicherCapsule(first: CapsuleEntity, second: CapsuleEntity): CapsuleEntity {
+        val firstScore = capsuleRichnessScore(first)
+        val secondScore = capsuleRichnessScore(second)
+        return if (secondScore > firstScore) second else first
+    }
+
+    private fun capsuleRichnessScore(capsule: CapsuleEntity): Int {
+        var score = 0
+        if (capsule.message.isNotBlank()) score += 2
+        if (capsule.title.isNotBlank()) score += 2
+        if (!capsule.imageBase64.isNullOrBlank()) score += 2
+        if (capsule.latitude != 0.0 || capsule.longitude != 0.0) score += 1
+        if (capsule.isSharedWithMe) score += 1
+        if (capsule.isPublic) score += 1
+        return score
+    }
+
+    private suspend fun syncSharedCapsulesToLocal() {
+        val remoteShared = sharingRepository.getSharedWithMeCapsules().getOrNull() ?: return
+        remoteShared.forEach { data ->
+            val id = ((data["clientId"] as? String)?.takeIf { it.isNotBlank() }
+                ?: (data["id"] as? String)) ?: return@forEach
+            val sharedCapsule = CapsuleEntity(
+                id = id,
+                title = data["title"] as? String ?: "",
+                message = data["message"] as? String ?: "",
+                imageBase64 = (data["imageBase64"] as? String)?.ifBlank { null },
+                imageMimeType = data["imageMimeType"] as? String ?: "image/jpeg",
+                latitude = (data["latitude"] as? Number)?.toDouble() ?: 0.0,
+                longitude = (data["longitude"] as? Number)?.toDouble() ?: 0.0,
+                createdAt = (data["createdAt"] as? Number)?.toLong() ?: System.currentTimeMillis(),
+                unlockTime = (data["unlockTime"] as? Number)?.toLong(),
+                unlockLatitude = (data["unlockLatitude"] as? Number)?.toDouble(),
+                unlockLongitude = (data["unlockLongitude"] as? Number)?.toDouble(),
+                isUnlocked = data["isUnlocked"] as? Boolean ?: false,
+                isLocationBased = data["isLocationBased"] as? Boolean ?: false,
+                isTimeBased = data["isTimeBased"] as? Boolean ?: false,
+                ownerId = data["ownerId"] as? String ?: "",
+                sharedWith = (data["sharedWith"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
+                isPublic = data["isPublic"] as? Boolean ?: false,
+                canBeShared = data["canBeShared"] as? Boolean ?: false,
+                isSharedWithMe = true,
+                isDiscovered = data["isDiscovered"] as? Boolean ?: false,
+                sharedByName = data["sharedByName"] as? String,
+                sharedAt = (data["sharedAt"] as? Number)?.toLong()
+            )
+            capsuleRepository.insertCapsule(sharedCapsule)
+        }
     }
 
     private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {

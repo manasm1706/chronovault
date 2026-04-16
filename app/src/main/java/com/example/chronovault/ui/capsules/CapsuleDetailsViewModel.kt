@@ -10,13 +10,14 @@ import com.example.chronovault.data.local.CommentDao
 import com.example.chronovault.data.local.entity.CapsuleEntity
 import com.example.chronovault.data.local.entity.CommentEntity
 import com.example.chronovault.data.repository.CapsuleRepository
+import com.example.chronovault.data.repository.ChatRepository
 import com.example.chronovault.data.repository.SharingRepository
+import com.example.chronovault.data.repository.UserRepository
 import com.example.chronovault.ui.common.LoadingState
 import com.example.chronovault.utils.PreferencesManager
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.UUID
-import java.util.Locale
 
 /**
  * ViewModel for Capsule Details screen
@@ -26,6 +27,8 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
 
     private val capsuleRepository: CapsuleRepository = ServiceLocator.provideCapsuleRepository(application)
     private val sharingRepository: SharingRepository = ServiceLocator.provideSharingRepository(application)
+    private val chatRepository: ChatRepository = ServiceLocator.provideChatRepository(application)
+    private val userRepository: UserRepository = ServiceLocator.provideUserRepository(application)
     private val commentDao: CommentDao = ServiceLocator.provideCommentDao(application)
     private val preferencesManager: PreferencesManager = ServiceLocator.providePreferencesManager(application)
 
@@ -45,8 +48,11 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
     private val _actionState = MutableLiveData<ActionState>(ActionState.Idle)
     val actionState: LiveData<ActionState> = _actionState
 
-    private val _sharedWithEmails = MutableLiveData<List<String>>(emptyList())
-    val sharedWithEmails: LiveData<List<String>> = _sharedWithEmails
+    private val _sharedWithUserIds = MutableLiveData<List<String>>(emptyList())
+    val sharedWithUserIds: LiveData<List<String>> = _sharedWithUserIds
+
+    private val _sharedUsers = MutableLiveData<List<SharedUserItem>>(emptyList())
+    val sharedUsers: LiveData<List<SharedUserItem>> = _sharedUsers
 
     private val _comments = MutableLiveData<List<CommentEntity>>(emptyList())
     val comments: LiveData<List<CommentEntity>> = _comments
@@ -67,6 +73,10 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
                 // FIX: 12
                 persistExpiredTimeUnlocks()
                 val loadedCapsule = capsuleRepository.getCapsuleById(capsuleId)
+                    ?: capsuleRepository.fetchCapsuleFromCloud(capsuleId).getOrNull()
+                    ?: sharingRepository.findSharedCapsuleByAnyId(capsuleId).getOrNull()?.also {
+                        capsuleRepository.insertCapsule(it)
+                    }
                 if (loadedCapsule != null) {
                     // FIX: 12
                     val normalizedCapsule = if (
@@ -81,11 +91,14 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
                     }
 
                     _capsule.value = normalizedCapsule
-                    val userId = preferencesManager.getUserId()
+                    val userId = preferencesManager.getUserId().orEmpty()
                     _isOwner.value = normalizedCapsule.ownerId == userId
                     _isSharedCapsule.value = normalizedCapsule.canBeShared || normalizedCapsule.sharedWith.isNotEmpty()
-                    _canComment.value = normalizedCapsule.isSharedWithMe && normalizedCapsule.isDiscovered
-                    _sharedWithEmails.value = normalizedCapsule.sharedWith
+                    _canComment.value = normalizedCapsule.isPublic ||
+                        normalizedCapsule.ownerId == userId ||
+                        normalizedCapsule.sharedWith.contains(userId)
+                    _sharedWithUserIds.value = normalizedCapsule.sharedWith
+                    loadSharedUsers(normalizedCapsule.sharedWith)
                     checkUnlockConditions(normalizedCapsule)
                     _loadingState.value = LoadingState.Success
                 } else {
@@ -153,15 +166,15 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
         }
     }
 
-    fun shareCapsule(userEmail: String) {
+    fun shareCapsule(targetUserId: String) {
         val currentCapsule = _capsule.value ?: return
-        val normalizedEmail = userEmail.trim().lowercase(Locale.US)
+        val normalizedUserId = targetUserId.trim()
         if (_isOwner.value != true) {
             _actionState.value = ActionState.Error("Only the owner can share")
             return
         }
-        if (normalizedEmail.isBlank() || !normalizedEmail.contains("@")) {
-            _actionState.value = ActionState.Error("Please enter a valid email")
+        if (normalizedUserId.isBlank()) {
+            _actionState.value = ActionState.Error("Please enter a valid user ID")
             return
         }
         _actionState.value = ActionState.Loading
@@ -171,13 +184,20 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
                 if (!currentCapsule.canBeShared) {
                     capsuleRepository.updateSharingEnabled(currentCapsule.id, true)
                 }
-                sharingRepository.shareCapsuleWithUser(currentCapsule.id, normalizedEmail)
+                sharingRepository.setCapsulePublicState(currentCapsule.id, false)
+                sharingRepository.shareCapsuleWithUser(currentCapsule.id, normalizedUserId)
                     .onSuccess {
-                        val updated = _sharedWithEmails.value.orEmpty().toMutableList()
-                        if (!updated.contains(normalizedEmail)) updated.add(normalizedEmail)
-                        _sharedWithEmails.value = updated
+                        val updated = _sharedWithUserIds.value.orEmpty().toMutableList()
+                        if (!updated.contains(normalizedUserId)) updated.add(normalizedUserId)
+                        _sharedWithUserIds.value = updated
+                        loadSharedUsers(updated)
+                        _capsule.value = currentCapsule.copy(
+                            sharedWith = updated,
+                            isPublic = false,
+                            canBeShared = true
+                        )
                         _isSharedCapsule.value = true
-                        _actionState.value = ActionState.Success("Shared with $normalizedEmail")
+                        _actionState.value = ActionState.Success("Shared with $normalizedUserId")
                     }
                     .onFailure {
                         _actionState.value = ActionState.Error(it.message ?: "Failed to share")
@@ -188,16 +208,70 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
         }
     }
 
-    fun unshareCapsule(userEmail: String) {
+    fun shareCapsuleToUsers(targetUserIds: List<String>) {
+        val normalizedIds = targetUserIds.map { it.trim() }.filter { it.isNotBlank() }.distinct()
+        if (normalizedIds.isEmpty()) {
+            _actionState.value = ActionState.Error("Please select at least one user")
+            return
+        }
+
+        val currentCapsule = _capsule.value ?: return
+        if (_isOwner.value != true) {
+            _actionState.value = ActionState.Error("Only the owner can share")
+            return
+        }
+
+        _actionState.value = ActionState.Loading
+        viewModelScope.launch {
+            try {
+                if (!currentCapsule.canBeShared) {
+                    capsuleRepository.updateSharingEnabled(currentCapsule.id, true)
+                }
+                sharingRepository.setCapsulePublicState(currentCapsule.id, false)
+                val shareMessageCapsuleId = sharingRepository.resolveRemoteCapsuleId(currentCapsule.id)
+
+                val updated = _sharedWithUserIds.value.orEmpty().toMutableSet()
+                normalizedIds.forEach { userId ->
+                    sharingRepository.shareCapsuleWithUser(currentCapsule.id, userId)
+                        .onSuccess {
+                            updated.add(userId)
+                            // Optional social touch: notify via chat thread if available.
+                            chatRepository.sendCapsuleMessage(
+                                otherUserId = userId,
+                                capsuleId = shareMessageCapsuleId,
+                                capsuleTitle = currentCapsule.title
+                            )
+                        }
+                }
+
+                val updatedList = updated.toList()
+                _sharedWithUserIds.value = updatedList
+                loadSharedUsers(updatedList)
+                _capsule.value = currentCapsule.copy(
+                    sharedWith = updatedList,
+                    isPublic = false,
+                    canBeShared = true
+                )
+                _isSharedCapsule.value = true
+                _actionState.value = ActionState.Success("Shared with ${normalizedIds.size} user(s)")
+            } catch (e: Exception) {
+                _actionState.value = ActionState.Error(e.message ?: "Failed to share")
+            }
+        }
+    }
+
+    fun unshareCapsule(targetUserId: String) {
         val currentCapsule = _capsule.value ?: return
         _actionState.value = ActionState.Loading
         viewModelScope.launch {
-            sharingRepository.unshareCapsuleWithUser(currentCapsule.id, userEmail)
+            sharingRepository.unshareCapsuleWithUser(currentCapsule.id, targetUserId)
                 .onSuccess {
-                    val updated = _sharedWithEmails.value.orEmpty().toMutableList()
-                    updated.remove(userEmail)
-                    _sharedWithEmails.value = updated
-                    _actionState.value = ActionState.Success("Removed $userEmail")
+                    val updated = _sharedWithUserIds.value.orEmpty().toMutableList()
+                    updated.remove(targetUserId)
+                    _sharedWithUserIds.value = updated
+                    loadSharedUsers(updated)
+                    _capsule.value = currentCapsule.copy(sharedWith = updated)
+                    _actionState.value = ActionState.Success("Removed $targetUserId")
                 }
                 .onFailure {
                     _actionState.value = ActionState.Error(it.message ?: "Failed to remove")
@@ -212,9 +286,11 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
         viewModelScope.launch {
             try {
                 capsuleRepository.makeCapsulePrivate(currentCapsule.id)
-                _sharedWithEmails.value = emptyList()
+                sharingRepository.setCapsulePublicState(currentCapsule.id, false)
+                _sharedWithUserIds.value = emptyList()
+                _sharedUsers.value = emptyList()
                 _isSharedCapsule.value = false
-                _capsule.value = currentCapsule.copy(canBeShared = false, sharedWith = emptyList())
+                _capsule.value = currentCapsule.copy(canBeShared = false, sharedWith = emptyList(), isPublic = false)
                 _actionState.value = ActionState.Success("Capsule is now private")
             } catch (e: Exception) {
                 _actionState.value = ActionState.Error(e.message ?: "Failed to make private")
@@ -233,7 +309,7 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
         }
 
         if (_canComment.value != true) {
-            _actionState.value = ActionState.Error("Comments are available after discovering shared memories")
+            _actionState.value = ActionState.Error("You do not have permission to comment on this capsule")
             return
         }
 
@@ -287,6 +363,29 @@ class CapsuleDetailsViewModel(application: Application) : AndroidViewModel(appli
 
     fun resetActionState() {
         _actionState.value = ActionState.Idle
+    }
+
+    private fun loadSharedUsers(userIds: List<String>) {
+        val normalizedIds = userIds.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+        if (normalizedIds.isEmpty()) {
+            _sharedUsers.value = emptyList()
+            return
+        }
+
+        viewModelScope.launch {
+            val profileRows = userRepository.getUsersByIds(normalizedIds).getOrDefault(emptyList())
+            val profileById = profileRows.associateBy { (it["id"] as? String).orEmpty() }
+            _sharedUsers.value = normalizedIds.map { id ->
+                val profile = profileById[id]
+                val displayName = (profile?.get("name") as? String).orEmpty().ifBlank { id }
+                val subtitle = (profile?.get("email") as? String).orEmpty().ifBlank { id }
+                SharedUserItem(
+                    userId = id,
+                    displayName = displayName,
+                    subtitle = subtitle
+                )
+            }
+        }
     }
 
     fun getCurrentUserId(): String = preferencesManager.getUserId() ?: ""

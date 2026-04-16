@@ -1,11 +1,9 @@
 package com.example.chronovault.workers
 
 import android.content.Context
-import android.location.Location
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.chronovault.data.ServiceLocator
-import com.example.chronovault.utils.LocationHelper
 import com.example.chronovault.utils.NotificationHelper
 import com.example.chronovault.utils.GooglePlayServicesGuard
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -29,6 +27,7 @@ class LocationBasedUnlockWorker(
             val capsuleRepository = ServiceLocator.provideCapsuleRepository(applicationContext)
             val preferencesManager = ServiceLocator.providePreferencesManager(applicationContext)
             val notificationRepository = ServiceLocator.provideNotificationRepository(applicationContext)
+            val nearbyCooldownMillis = 15 * 60 * 1000L
 
             if (!preferencesManager.isLocationTrackingEnabled()) {
                 return Result.success()
@@ -57,6 +56,12 @@ class LocationBasedUnlockWorker(
                     // FIX: 15
                     // If within 50 meters, unlock
                     if (distance <= 50f && !capsule.isUnlocked) {
+                        if (preferencesManager.shouldRunCooldownEvent("worker_nearby_${capsule.id}", nearbyCooldownMillis)) {
+                            NotificationHelper.sendNearbyCapsuleAlert(applicationContext)
+                        }
+                    }
+
+                    if (distance <= 50f && !capsule.isUnlocked) {
                         capsuleRepository.unlockCapsule(capsule.id)
 
                         if (capsule.isSharedWithMe && !capsule.isDiscovered) {
@@ -80,10 +85,10 @@ class LocationBasedUnlockWorker(
             }
 
             Result.success()
-        } catch (e: SecurityException) {
+        } catch (_: SecurityException) {
             // Recoverable environment issue (Play services broker/security mismatch). Avoid retry loop.
             Result.success()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Result.retry()
         }
     }
@@ -101,7 +106,6 @@ class LocationBasedUnlockWorker(
 
     companion object {
         const val WORK_NAME = "location_based_unlock_work"
-        const val NOTIFICATION_ID = 1002
     }
 }
 
